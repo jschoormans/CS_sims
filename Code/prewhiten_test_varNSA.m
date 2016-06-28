@@ -40,11 +40,11 @@ for jjj=1:3
 
 %% add noise to kspace
 clear Ku_N2
-NoiseLevel=4e-4;
+NoiseLevel=5e-4;
 for iii=1:max(MNSA(:)) %Matrix of NSA values
 K_N=addNoise(K,NoiseLevel);
 Ku_N1=repmat(squeeze(M(:,:).*(MNSA(:,:)>=iii)),[1 1 size(K,3)]).*K_N;
-Ku_N2(1,:,:,:,1,iii)=permute(Ku_N1,[2,1,3,4]);
+Ku_N2(1,:,:,:,1,iii)=permute(Ku_N1,[1,2,3,4]);
 end
 Ku_Nvar1=sum(Ku_N2,6)./permute(repmat(MNSA,[1 1 size(K,3)]),[4 2 1 3]);
 disp('check dimensions')
@@ -57,32 +57,16 @@ reg=0.05
 R1{jjj}=bart(['pics -RW:7:0:',num2str(reg),' -S -e -i20 -d5'],K_N.*Mfull,sens(end:-1:1,end:-1:1,:,:));
 figure(99); imshow(abs(R1{jjj}),[])
 %% RECON R2: WITHOUT PREAVERAGING
-
-% kspacefull=[]; trajfull=[];
-% for ii=1:size(Ku_N2,6)
-    
-[kspace, trajfull]=calctrajBART(permute(Ku_N2,[2 3 1 4 6 5])); 
-
-% kspacefull=[kspacefull;kspace];
-% trajfull=[trajfull,traj];
-% end
-
-%
-kspace=permute(kspace,[3 1 2]);
-traj=trajfull;
-% traj=permute(traj,[1 3 2]);
-R2{jjj}=bart(['pics -RW:7:0:0.01 -S -m -i10 -d5 -t'],traj,kspace,sens);
+clear traj2;
+[kspace, traj]=calctrajBART(permute(Ku_N2,[1 2 3 4 6 5])); 
+traj2(1,1,:)=traj(3,1,:); traj2(2,1,:)=traj(2,1,:); traj2(3,1,:)=traj(1,1,:); %FOR 2D signals; when we do not want ANY frequency encoding!
+R2{jjj}=bart(['pics -RW:7:0:0.02 -S -m -i50 -d5 -t'],traj2,kspace,sens);
 
 %% RECON R3: same traj, with preaveraging
-
- 
-[kspace, traj]=calctrajBART(squeeze(Ku_Nvar1)); 
-kspace=permute(kspace,[3 1 4 2]);
-traj=traj.*(ny/2);
-R3{jjj}=bart('pics -RW:7:0:0.01 -S -m -e -i100 -t',traj,kspace,sens);
-
-
-
+ clear traj2;
+[kspace, traj]=calctrajBART((Ku_Nvar1)); 
+traj2(1,1,:)=traj(3,1,:); traj2(2,1,:)=traj(2,1,:); traj2(3,1,:)=traj(1,1,:); %FOR 2D signals; when we do not want ANY frequency encoding!
+R3{jjj}=bart('pics -RW:7:0:0.02 -S -m -i50 -d5 -t',traj2,kspace,sens);
 
 end
 
@@ -120,7 +104,7 @@ legend('pre-av','no pre-av')
 hold off
 %%
 for jjj=1:3
-    F{1,jjj}=ssim(abs(R1{jjj}),abs(R_baseline))
-    F{2,jjj}=ssim(abs(R2{jjj}),abs(R_baseline))
-    F{3,jjj}=ssim(abs(R3{jjj}),abs(R_baseline))
+    F{1,jjj}=ssim(abs(R1{jjj})./max(abs(R1{jjj}(:))),abs(R_baseline)./max(abs(R_baseline(:))))
+    F{2,jjj}=ssim(abs(R2{jjj})./max(abs(R2{jjj}(:))),abs(R_baseline)./max(abs(R_baseline(:))))
+    F{3,jjj}=ssim(abs(R3{jjj})./max(abs(R3{jjj}(:))),abs(R_baseline)./max(abs(R_baseline(:))))
 end

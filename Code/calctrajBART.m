@@ -17,9 +17,10 @@ for nc=1:size(K,4);
     kspacedyns=[kspacedyns,k];
     coordsdyns=cat(3,coordsdyns,coords);
     end
-    kspace(:,:,:,nc)=kspacedyns;
+    kspace(1,:,:,nc)=kspacedyns;
 end
 
+coordsdyns=coordsdyns./2; %k_max is half of the number of k_lines (symmetry)
 
 
 function [kspace, coords]= kspacereshape(K);
@@ -44,4 +45,5 @@ function [kspace, coords]= kspacereshape(K);
     coords(2,:,:)=ones(1,n1)'*real(traj).'.*n2;
     coords(3,:,:)=ones(1,n1)'*imag(traj).'.*n3;
 end
+
 end
