@@ -71,7 +71,7 @@ figure(99); imshow(abs(R1{jjj}),[])
 kspace=permute(kspace,[3 1 2]);
 traj=trajfull;
 % traj=permute(traj,[1 3 2]);
-R2{jjj}=bart(['pics -RW:7:0:0.01 -S -m -i10 -d5 -t'],traj,kspace,sens);
+R2{jjj}=bart(['pics -RW:7:0:0.01 -S -e -i10 -d5 -t'],traj,kspace,sens);
 
 %% RECON R3: same traj, with preaveraging
 
