@@ -123,7 +123,7 @@ p = params.pNorm;
 % obj = params.V.*(FTXFMtx + t*FTXFMtdx - params.data); %MODIFIED TO ADD PARAM.V
 obj = sqrt(params.V).*(FTXFMtx + t*FTXFMtdx - params.data); %MODIFIED TO ADD PARAM.V NOW WITH S
 
-obj = obj(:)'*obj(:); %IN THE END THIS IS JUST A VALUE AND NOT A VECTOR;;;
+obj = obj(:)'*obj(:); %IN THE END THIS IS JUST A VALUE AND NOT A VECTOR= l2-norm
 
 if params.TVWeight
     w = DXFMtx(:) + t*DXFMtdx(:);

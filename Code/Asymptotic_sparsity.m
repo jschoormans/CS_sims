@@ -1,5 +1,5 @@
 clear all; close all; clc; 
-cd('/home/jschoormans/lood_storage/divi/Projects/cosart/CS_simulations')
+cd('/home/jschoormans/lood_storage/divi/Projects/cosart/CS_simulations/Code')
 %%
 % I=imread('brain.png');
 I=imread('earth.jpg');
@@ -38,7 +38,7 @@ figure(3)
 hold on
 for ii=2:10
    x=linspace(0,1,length(F{ii}.C));
-   plot(x,F{ii}.C) 
+   plot(F{ii}.C,x) 
 end
 xlabel('fraction of ordered coeffs (low-high)')
 ylabel('l1-norm of smallest x coeffs (normalized to l1 of all coeff)')
