@@ -120,8 +120,8 @@ function [res, obj, RMS] = objective(FTXFMtx, FTXFMtdx, DXFMtx, DXFMtdx, x,dx,t,
 
 p = params.pNorm; 
 
-% obj = params.V.*(FTXFMtx + t*FTXFMtdx - params.data); %MODIFIED TO ADD PARAM.V
-obj = sqrt(params.V).*(FTXFMtx + t*FTXFMtdx - params.data); %MODIFIED TO ADD PARAM.V NOW WITH S
+obj = params.V.*(FTXFMtx + t*FTXFMtdx - params.data); %MODIFIED TO ADD PARAM.V
+% obj = sqrt(params.V).*(FTXFMtx + t*FTXFMtdx - params.data); %MODIFIED TO ADD PARAM.V NOW WITH S
 
 obj = obj(:)'*obj(:); %IN THE END THIS IS JUST A VALUE AND NOT A VECTOR= l2-norm
 
@@ -173,7 +173,9 @@ function gradObj = gOBJ(x,params);
 % MODIFY TO INCLUDE NOISE VARIANCE MATRIX:
 	gradObj = params.XFM*(params.FT'*(params.V.*(params.FT*(params.XFM'*x) - params.data)));
 
-   %% DEBUGGING PLOclosTS
+   
+if params.Debug==1;
+    %% DEBUGGING PLOclosTS
    Errors=(params.FT*(params.XFM'*x) - params.data);
    ErrorsW=params.V.*(params.FT*(params.XFM'*x) - params.data);
    
@@ -188,7 +190,7 @@ hist(real(Errors(Errors(:)~=0)),1000)
 norm=(1/(sigmahat*sqrt(2*pi)))*exp((-(X-muhat).^2)./(2*sigmahat.^2));
 plot(X,sum(N).*norm./sum(norm))
 hold off
-
+end
    %%
 
 gradObj = 2*gradObj ; % DO NOT KNOW WHY IT DOES TWO HERE????

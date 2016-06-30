@@ -9,6 +9,8 @@
 cd('/home/jschoormans/lood_storage/divi/Projects/cosart/CS_simulations/Code')
 addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/Matlab_Collection/MRIPhantomv0-8'))
 addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/Matlab_Collection/tightfig'))
+addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/Matlab_Collection/WaveLab850'))
+addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/CS_simulations/sparseMRI_v0.2'))
 
 clear all; close all; clc;
 
@@ -32,7 +34,7 @@ M=genSampling(pdf,10,100).*Mfull;
 % L1 Recon Parameters 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 TVWeight = 0.002; 	% Weight for TV penalty
-xfmWeight = 0.005;	% Weight for Transform L1 penalty
+xfmWeight = 0.0005;	% Weight for Transform L1 penalty
 Itnlim = 8;		% Number of iterations
 
 %generate Fourier sampling operator
@@ -88,23 +90,24 @@ R1{jjj}=bart(['pics -RW:7:0:',num2str(reg),' -S -e -i20 -d5'],K_N.*Mfull,sens(en
 R1{jjj}=R1{jjj}./max(R1{jjj}(:));
 %% RECON R2: WITHOUT PREAVERAGING
 clear traj2;
+ADMMreg=0.5
 [kspace, traj]=calctrajBART(permute(Ku_N2,[1 2 3 4 6 5])); 
 traj2(1,1,:)=traj(3,1,:); traj2(2,1,:)=traj(2,1,:); traj2(3,1,:)=traj(1,1,:); %FOR 2D signals; when we do not want ANY frequency encoding!
-R2{jjj}=bart(['pics -RW:7:0:0.02 -S -m -i20 -d5 -t'],traj2,kspace,sens);
+R2{jjj}=bart(['pics -RW:7:0:0.02 -S -u',num2str(ADMMreg),' -m -i20 -d5 -t'],traj2,kspace,sens);
 R2{jjj}=R2{jjj}./max(R2{jjj}(:));
 
 %% RECON R3: same traj, with preaveraging
 clear traj2;
 [kspace, traj]=calctrajBART((Ku_Nvar1)); 
 traj2(1,1,:)=traj(3,1,:); traj2(2,1,:)=traj(2,1,:); traj2(3,1,:)=traj(1,1,:); %FOR 2D signals; when we do not want ANY frequency encoding!
-R3{jjj}=bart('pics -RW:7:0:0.02 -S -m -i20 -d5 -t',traj2,kspace,sens);
+R3{jjj}=bart(['pics -RW:7:0:0.02 -S -u',num2str(ADMMreg./mean(MNSA(:))),' -m -i20 -d5 -t'],traj2,kspace,sens);
 R3{jjj}=R3{jjj}./max(R3{jjj}(:));
 
 %% RECON R4: conjugate gradient method - with pre-averaging but no variance matrix
 
 im_dc2 = FT'*(param.data.*M./pdf); %linear recon; scale data to prevent low-pass filtering
 res_orig = XFM*im_dc2;
-for n=1:8
+for n=1:4
     res_orig = fnlCg(res_orig,param);
 	R4{jjj} = XFM'*res_orig;
 end
@@ -112,8 +115,9 @@ R4{jjj}=R4{jjj}./max(R4{jjj}(:));
 
 %% RECON R5
 res = XFM*im_dc2;
-param.V=1./(MNSA);
-for n=1
+param.V=(MNSA);
+params.Debug=0;
+for n=1:4
 	res = fnlCg_test(res,param);
 	R5{jjj} = XFM'*res;
 end
