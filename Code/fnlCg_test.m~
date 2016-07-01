@@ -77,7 +77,7 @@ while(1)
 	x = (x + t*dx);
 
 	%--------- uncomment for debug purposes ------------------------	
-	disp(sprintf('%d   , obj: %f, RMS: %f, L-S: %d, ErrObj: %f', k,f1,RMSerr,lsiter,ERRobj));
+	disp(sprintf('%d   , obj: %f, RMS: %f, L-S: %d', k,f1,RMSerr,lsiter));
 
 	%---------------------------------------------------------------
 	
@@ -124,7 +124,8 @@ function [res, obj, RMS] = objective(FTXFMtx, FTXFMtdx, DXFMtx, DXFMtdx, x,dx,t,
 
 p = params.pNorm; 
 
-obj = params.V.*(FTXFMtx + t*FTXFMtdx) - params.V.*params.data; %MODIFIED TO ADD PARAM.V
+obj = params.V.*(FTXFMtx + t*FTXFMtdx - params.data); %MODIFIED TO ADD PARAM.V
+% obj = sqrt(params.V).*(FTXFMtx + t*FTXFMtdx - params.data); %MODIFIED TO ADD PARAM.V NOW WITH S
 
 obj = obj(:)'*obj(:); %IN THE END THIS IS JUST A VALUE AND NOT A VECTOR= l2-norm
 
@@ -174,12 +175,11 @@ function gradObj = gOBJ(x,params);
 
 % 	gradObj = params.XFM*(params.FT'*(params.FT*(params.XFM'*x) - params.data));
 % MODIFY TO INCLUDE NOISE VARIANCE MATRIX:
-	gradObj = params.XFM*(params.FT'*(params.V'.*(params.V.*(params.FT*(params.XFM'*x)) - (params.V.*params.data))));
+	gradObj = params.XFM*(params.FT'*(params.V.*(params.FT*(params.XFM'*x) - params.data)));
 
    
 if params.Debug==1;
     %% DEBUGGING PLOclosTS
-    disp('not sure about debugging functions: check before using')
    Errors=(params.FT*(params.XFM'*x) - params.data);
    ErrorsW=params.V.*(params.FT*(params.XFM'*x) - params.data);
    
