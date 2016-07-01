@@ -57,18 +57,25 @@ param.Itnlim = Itnlim;
 
 
 %% SIGNAL AVERAGING APPROACHES
-jjj=1; %option to try different averaging approaches
+jjj=5 %option to try different averaging approaches
 if jjj==1
     MNSA=ceil(1./pdf);
 elseif jjj==2
     MNSA=ceil(pdf*acc);
-else
+elseif jjj==3
     MNSA=acc*ones(size(pdf));
+elseif jjj==4 %extreme center-heavy
+    MNSA=ones(size(pdf));
+    MNSA(1+ny/4:3*ny/4,1+nz/4:3*nz/4)=100*ones(ny/2,nz/2);
+elseif jjj==5 %extreme outside-heavy
+    MNSA=100*ones(size(pdf));
+    MNSA(1+ny/4:3*ny/4,1+nz/4:3*nz/4)=ones(ny/2,nz/2);
+
 end
 
 %% add noise to kspace
 clear Ku_N2
-NoiseLevel=1e-4;
+NoiseLevel=8e-4;
 for iii=1:max(MNSA(:)) %Matrix of NSA values
 K_N=addNoise(K,NoiseLevel);
 Ku_N1=repmat(squeeze(M(:,:).*(MNSA(:,:)>=iii)),[1 1 size(K,3)]).*K_N;
@@ -86,7 +93,7 @@ param.data = data;  %give data to parameters.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  RECONS 
 %% ORDINARY RECON
 reg=0.05
-R1{jjj}=bart(['pics -RW:7:0:',num2str(rMNSAeg),' -S -e -i20 -d5'],K_N.*Mfull,sens(end:-1:1,end:-1:1,:,:));
+R1{jjj}=bart(['pics -RW:7:0:',num2str(reg),' -S -e -i20 -d5'],K_N.*Mfull,sens(end:-1:1,end:-1:1,:,:));
 R1{jjj}=R1{jjj}./max(R1{jjj}(:));
 %% RECON R2: WITHOUT PREAVERAGING
 clear traj2;
@@ -100,12 +107,12 @@ R2{jjj}=R2{jjj}./max(R2{jjj}(:));
 clear traj2;
 [kspace, traj]=calctrajBART((Ku_Nvar1)); 
 traj2(1,1,:)=traj(3,1,:); traj2(2,1,:)=traj(2,1,:); traj2(3,1,:)=traj(1,1,:); %FOR 2D signals; when we do not want ANY frequency encoding!
-R3{jjj}=bart(['pics -RW:7:0:0.02 -S -u',num2str(ADMMreg./mean(sqrt(MNSA(:)).^2)),' -m -i30 -d5 -t'],traj2,kspace,sens);
+R3{jjj}=bart(['pics -RW:7:0:0.02 -S -u',num2str(ADMMreg./mean(MNSA(M~=0))),' -m -i30 -d5 -t'],traj2,kspace,sens);
 R3{jjj}=R3{jjj}./max(R3{jjj}(:));
 
 %% RECON R4: conjugate gradient method - with pre-averaging but no variance matrix
 
-xfmWeight = 0.0001;	% Weight for Transform L1 penalty
+xfmWeight = 0.0002;	% Weight for Transform L1 penalty
 
 param.xfmWeight=xfmWeight
 im_dc2 = FT'*(param.data.*M./pdf); %linear recon; scale data to prevent low-pass filtering
@@ -120,7 +127,7 @@ R4{jjj}=R4{jjj}./max(R4{jjj}(:));
 res = XFM*im_dc2;
 param.V=sqrt(MNSA);
 param.Debug=0;
-param.xfmWeight=xfmWeight*(mean(param.V(:).^2))
+param.xfmWeight=xfmWeight*(mean(param.V(M~=0)))
 
 for n=1:4
 	res = fnlCg_test(res,param);
@@ -132,6 +139,38 @@ R5{jjj}=R5{jjj}./max(R5{jjj}(:));
 
 figure(100);
 imshow(abs(cat(2,R1{jjj}./max(R1{jjj}(:)),R2{jjj},R3{jjj},R4{jjj},R5{jjj})),[])
+
+
+%% SHOW NOISE PROFILE OF RECONS
+
+No{1,jjj}=fft2c(R1{jjj}).*M-param.data;
+No{2,jjj}=fft2c(R2{jjj}).*M-param.data;
+No{3,jjj}=fft2c(R3{jjj}).*M-param.data;
+No{4,jjj}=fft2c(R4{jjj}).*M-param.data;
+No{5,jjj}=fft2c(R5{jjj}).*M-param.data;
+
+%calculate noise stds for certain regions
+for i=1:ny
+    for j=1:nz
+    Distance(i,j)=sqrt(abs(i-(ny/2 +1)).^2+abs(j-(nz/2+1)).^2);
+    end
+end
+
+[distances,indexdist]=sort(Distance(:),'ascend');
+indexdist=indexdist(M(:)>0);
+distances=distances(M(:)>0);
+figure(200)
+hold on
+plot(distances,mean((No{1,jjj}(indexdist)).^2)*(MNSA(indexdist)),'k--') %added noise profile
+plot(distances,smooth((No{1,jjj}(indexdist)).^2,10000),'k')
+plot(distances,smooth((No{2,jjj}(indexdist)).^2,10000),'b')
+plot(distances,smooth((No{3,jjj}(indexdist)).^2,10000),'r')
+plot(distances,smooth((No{4,jjj}(indexdist)).^2,10000),'y')
+plot(distances,smooth((No{5,jjj}(indexdist)).^2,10000),'g')
+hold off
+
+
+
 
 
 

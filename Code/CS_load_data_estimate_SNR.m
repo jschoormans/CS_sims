@@ -1,3 +1,5 @@
+clear all; close all; clc;
+
 folder='/home/jschoormans/lood_storage/divi/Temp/jasper/20151104_3DimSDE_ISMRM/v2/'
 file='20_22102015_1512550_9_2_wip3d05mm35mmacc4nsa4senseV4.raw'
 cd('/home/jschoormans/lood_storage/divi/Projects/cosart/CS_simulations')
