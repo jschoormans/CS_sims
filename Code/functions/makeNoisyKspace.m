@@ -32,4 +32,4 @@ Ku_Nvar1=sum(Ku_N2,6)./permute(repmat(MNSA,[1 1 size(K,3)]),[4 2 1 3]);
 
 
 
-end
+end 
