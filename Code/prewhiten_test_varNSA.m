@@ -6,7 +6,6 @@ addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/Matlab_Coll
 clear all; close all; clc;
 
 
-
 %simulate k-space
 [K,sens]=genPhantomKspace(512,1);
 sens=permute(sens,[1 2 4 3]);

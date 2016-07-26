@@ -80,7 +80,7 @@ while(1)
 	disp(sprintf('%d   , obj: %f, RMS: %f, L-S: %d, ErrObj: %f', k,f1,RMSerr,lsiter,ERRobj));
 
 	%---------------------------------------------------------------
-	
+	-0.002168
     %conjugate gradient calculation
     
 	g1 = wGradient(x,params);
