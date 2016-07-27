@@ -50,7 +50,7 @@ while(1)
 	[FTXFMtx, FTXFMtdx, DXFMtx, DXFMtdx] = preobjective(x, dx, params);
 	f0 = objective(FTXFMtx, FTXFMtdx, DXFMtx, DXFMtdx,x,dx, 0, params);
 	t = t0;
-        [f1, ERRobj, RMSerr]  =  objective(FTXFMtx, FTXFMtdx, DXFMtx, DXFMtdx,x,dx, t, params);
+    [f1, ERRobj, RMSerr]  =  objective(FTXFMtx, FTXFMtdx, DXFMtx, DXFMtdx,x,dx, t, params);
 	
 	lsiter = 0;
 
@@ -80,7 +80,6 @@ while(1)
 	disp(sprintf('%d   , obj: %f, RMS: %f, L-S: %d, ErrObj: %f', k,f1,RMSerr,lsiter,ERRobj));
 
 	%---------------------------------------------------------------
-	-0.002168
     %conjugate gradient calculation
     
 	g1 = wGradient(x,params);
@@ -174,8 +173,9 @@ function gradObj = gOBJ(x,params);
 
 % 	gradObj = params.XFM*(params.FT'*(params.FT*(params.XFM'*x) - params.data));
 % MODIFY TO INCLUDE NOISE VARIANCE MATRIX:
-	gradObj = params.XFM*(params.FT'*(params.V'.*(params.V.*(params.FT*(params.XFM'*x)) - (params.V.*params.data))));
-
+% 	gradObj = params.XFM*(params.FT'*(params.V'.*(params.V.*(params.FT*(params.XFM'*x)) - (params.V.*params.data))));
+    gradObj = params.XFM*(params.FT'*(params.V.*(params.V.*(params.FT*(params.XFM'*x)) - (params.V.*params.data))));
+    % no V' : V should be a diagonal matrix, but is reshaped ??
    
 if params.Debug==1;
     %% DEBUGGING PLOclosTS
