@@ -18,7 +18,7 @@ K=bart('fft 3',Im);
 sens=ones(size(K));
 
 else
-[K,sens]=genPhantomKspace(128,1);
+[K,sens]=genPhantomKspace(256,1);
 sens=permute(sens,[1 2 4 3]);
 end
 K=K./max(K(:)); %normalize kspace
@@ -60,8 +60,8 @@ end
 
 %% calculate SNR
 
-sigcoordsx=[7]
-sigcoordsy=[58:70]
+sigcoordsx=[14]
+sigcoordsy=[116:140]
 noisecoordsx=[1:20]
 noisecoordsy=[1:20]
 
@@ -79,14 +79,14 @@ end
 %% Visualize
 cd(figfolder)
 figure(101)
-plot(sqrt(SNRvector(2:end)),squeeze(PSNR(2,[2,5,8,10],1:end)).','.-')
-set(gcf,'color','w');
+plot(sqrt(SNRvector(2:end)),squeeze(PSNR(2,[2,5,8,10],2:end)).','*-')
+set(gcf,'color','w');legend('9x','6x','3x','full','Location','NorthWest')
+
 
 xlabel('sqrt SNR')
 ylabel('PSNR')
 export_fig -native '1_SSIM.eps'
 export_fig -native '1_SSIM.png'
-legend('9x','6x','3x','full','Location','NorthWest')
 %%
 figure(102)
 plot(1./accvector,squeeze(PSNR(2,:,[1,4,6:8])),'*-');
@@ -97,7 +97,7 @@ xlabel('NSA/undersampling')
 ylabel('PSNR')
 export_fig -native '2_PSNR.eps'
 export_fig -native '2_PSNR.png'
-legend('SNR=inf','SNR=150','SNR=70','SNR=50','SNR=25')
+legend('SNR=inf','SNR=75','SNR=35','SNR=25','SNR=12.5')
 
 
 figure(1022)
@@ -109,11 +109,11 @@ xlabel('NSA/undersampling')
 ylabel('SSIM')
 export_fig -native '2_SSIM.eps'
 export_fig -native '2_SSIM.png'
-legend('SNR=inf','SNR=150','SNR=70','SNR=50','SNR=25')
+legend('SNR=inf','SNR=75','SNR=35','SNR=25','SNR=12.5')
 
 
 figure(1023)
-plot(1./accvector,squeeze(MSE(2,:,[1,4,6:8])),'*-');
+plot(1./accvector,log(squeeze(MSE(2,:,[1,4,6:8]))),'*-');
 set(gcf,'color','w');
 
 title('MSE')
@@ -121,18 +121,18 @@ xlabel('NSA/undersampling')
 ylabel('MSE')
 export_fig -native '2_MSE.eps'
 export_fig -native '2_MSE.png'
-legend('SNR=inf','SNR=150','SNR=70','SNR=50','SNR=25')
+legend('SNR=inf','SNR=75','SNR=35','SNR=25','SNR=12.5','Location','NorthWest')
 
 %%
 figure(501)
-plot(1./accvector,squeeze(PSNR(2,:,[1])),'*-');
-ylim([45 65])
+plot(1./accvector,squeeze(PSNR(2,:,[1,4,6,7,8])),'*-');
+ylim([45 75])
 set(gcf,'color','w');
 title('PSNR')
 xlabel('NSA/undersampling')
 ylabel('PSNR')
-export_fig -native '2_PSNR_1.eps'
-export_fig -native '2_PSNR_1.png'
+export_fig -native '2_PSNR_5.eps'
+export_fig -native '2_PSNR_5.png'
 
 %legend('SNR=inf','SNR=150','SNR=70','SNR=50','SNR=25')
 
@@ -154,4 +154,30 @@ export_fig -native '5_RECONS.eps'
 export_fig -native '5_RECONS.png'
 
 
+%% 
 
+% accvector=[10,9,8,7,6,5,4,3,2,1];
+% noisevector=[0 1 5 7 10 15 20 40 80 100 120 150]*1e-4; %(0;1/100;1/10 1/5 % of cksp)
+
+figure(501)
+imshow(abs(R{2,10,1}),[]); axis off;set(gcf,'color','w');
+export_fig -native '5_full_noise0.eps'
+
+figure(501)
+imshow(abs(R{2,10,7}),[]); axis off;set(gcf,'color','w');
+export_fig -native '5_full_noise7.eps'
+
+figure(501)
+imshow(abs(R{2,10,10}),[]); axis off;set(gcf,'color','w');
+export_fig -native '5_full_noise10.eps'
+
+figure(501)
+imshow(abs(R{2,7,1}),[]); axis off;set(gcf,'color','w');
+export_fig -native '5_acc4_noise0.eps'
+
+figure(501)
+imshow(abs(R{2,7,7}),[]); axis off;set(gcf,'color','w');
+export_fig -native '5_acc4_noise7.eps'
+figure(501)
+imshow(abs(R{2,7,10}),[]); axis off;set(gcf,'color','w');
+export_fig -native '5_acc4_noise10.eps'
