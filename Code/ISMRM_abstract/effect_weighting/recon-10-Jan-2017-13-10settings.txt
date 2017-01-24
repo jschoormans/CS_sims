@@ -1,0 +1,78 @@
+saving settings...
+P = 
+        outeriter: 6
+           Itnlim: 8
+         TVWeight: 0.0030
+        TGVfactor: 0
+        xfmWeight: 0
+        squareksp: 1
+    resultsfolder: '/home/jschoormans/lood_storage/divi/Projects/cosart/CS_…'
+               nx: 1
+               ny: 256
+               nz: 256
+               nc: 1
+             nNSA: 6
+      reconslices: 1
+            break: 0
+        noNSAcorr: 0
+           parfor: 0
+         savename: 'recon-10-Jan-2017-13-10'
+             mask: [256x256 double]
+             MNSA: [256x256 double]
+              pdf: [256x256 double]
+    sensemapsloop: 1
+        sensemaps: [1x256x256 double]
+            recon: [256x256 double]
+Finished!
+saving settings...
+P = 
+        outeriter: 6
+           Itnlim: 8
+         TVWeight: 0.0030
+        TGVfactor: 0
+        xfmWeight: 0
+        squareksp: 1
+    resultsfolder: '/home/jschoormans/lood_storage/divi/Projects/cosart/CS_…'
+               nx: 1
+               ny: 256
+               nz: 256
+               nc: 1
+             nNSA: 6
+      reconslices: 1
+            break: 0
+        noNSAcorr: 0
+           parfor: 0
+         savename: 'recon-10-Jan-2017-13-10'
+             mask: [256x256 double]
+             MNSA: [256x256 double]
+              pdf: [256x256 double]
+    sensemapsloop: 1
+        sensemaps: [1x256x256 double]
+            recon: [256x256 double]
+Finished!
+saving settings...
+P = 
+        outeriter: 6
+           Itnlim: 8
+         TVWeight: 0.0030
+        TGVfactor: 0
+        xfmWeight: 0
+        squareksp: 1
+    resultsfolder: '/home/jschoormans/lood_storage/divi/Projects/cosart/CS_…'
+               nx: 1
+               ny: 256
+               nz: 256
+               nc: 1
+             nNSA: 6
+      reconslices: 1
+            break: 0
+        noNSAcorr: 0
+           parfor: 0
+         savename: 'recon-10-Jan-2017-13-10'
+             mask: [256x256 double]
+             MNSA: [256x256 double]
+              pdf: [256x256 double]
+    sensemapsloop: 1
+        sensemaps: [1x256x256 double]
+            recon: [256x256 double]
+Finished!

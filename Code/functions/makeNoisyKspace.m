@@ -1,11 +1,19 @@
-function [K_N, Ku_Nvar1,P]=makeNoisyKspace(K,P)
+function [K_N, Ku_Nvar1,Ku_N2,P]=makeNoisyKspace(K,P)
 % load k-space data and add noise and stuff
+%input: P.acc;  
+% P.jjj=1: periphery; 
+% 2: center
+% 3: uniform
+% 4: ones(undersampled)
+% P.NoiseLevel
+
 %outputs K_N: noisy full k-space
 %Ku_Nvar1: undersampled and averaged k-space
+%p.MNSA: matrix of number of averages
 
 
 %make masks
-[pdf,~] = genPDF(size(K(:,:,1)),4,1/P.acc,1,0,0);
+[pdf,~] = genPDF(size(K(:,:,1)),4,1/P.acc,2,0,0);
 Mfull=genEllipse(size(K,1),size(K,2));
 Mfull=repmat(Mfull,[1 1 size(K,3)]); %add coils
 M=genSampling(pdf,10,100).*Mfull;
