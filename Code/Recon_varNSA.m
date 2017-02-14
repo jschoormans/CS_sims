@@ -45,13 +45,27 @@ function addAveragestoLabels(MR)
     all_klines=double([MR.Parameter.Labels.Index.ky MR.Parameter.Labels.Index.kz]);
     all_klines(MR.Parameter.Labels.Index.typ~=1)=NaN;
     numbers=1:length(MR.Parameter.Labels.Index.typ);
+    
+    mm=length(numbers)
+    mk=min(all_klines)
+    mak=max(all_klines)
+
+    nchans=max(MR.Parameter.Labels.Index.chan);
+    
+    V=zeros(mak(1)+abs(mk(1))+1,mak(2)+abs(mk(2))+1,nchans);
     for iline=numbers(MR.Parameter.Labels.Index.typ==1);
-        loc = find(all(all_klines == ones(size(all_klines,1),1) * all_klines(iline,:),2));
-        nsa_number(iline) = find(loc == iline);
+        
+        chan=MR.Parameter.Labels.Index.chan(iline);
+        
+        xc=all_klines(iline,1)+1+abs(mk(1));
+        yx=all_klines(iline,2)+1+abs(mk(2));
+        
+        nsa=(V(xc,yx,chan));
+        V(xc,yx,chan)=V(xc,yx,chan)+1;
+         
+        nsa_number(iline) = nsa;
     end
-    nsa_number=ceil(nsa_number./size(MR.Parameter.Labels.CoilNrs,1)); %temp hack 13 is number of channels!!! MAKE SURE THAT THIS IS CORRECT!!!
-    nsa_number=nsa_number-1;
-    MR.Parameter.Labels.Index.aver=uint16(nsa_number);
+    MR.Parameter.Labels.Index.echo=(nsa_number).';
 end
 
 end

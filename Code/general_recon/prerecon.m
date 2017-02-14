@@ -1,29 +1,48 @@
 % prerecon: saves K.mat from .raw data from scanner
 
-cd('/home/jschoormans/lood_storage/divi/Ima/parrec/Jasper/VNSA/20161206_ICVW_VSNA')
 addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/CS_simulations/Code'))
 addpath(genpath('/opt/amc/bart-0.3.00'));vars;
 addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/Matlab_Collection/CS Excercise'))
 addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/Matlab_Collection/codefrombram/various/export_fig'))
 
 clear all; close all; clc;
-MR=MRecon()
+
+inp=1; i=1
+while inp==1 
+FF{i} = uigetfile('*.raw')
+inp = input('another one? type 1')
+
+
+if inp==1
+   i=i+1
+   
+else
+    break;
+end
+end
+
+
+
+for i=1:length(FF)
+MR=Recon_varNSA(FF{i})
 MR.Parameter.Parameter2Read.typ=1;
 
-MR.Parameter.Recon.ArrayCompression='Yes'
+MR.Parameter.Recon.ArrayCompression='No'
 MR.Parameter.Recon.ACNrVirtualChannels=6;
 % MR.Parameter.Parameter2Read.chan=[17]
-
 MR.ReadData;
 MR.RandomPhaseCorrection;
 MR.RemoveOversampling;
 MR.PDACorrection;
 MR.DcOffsetCorrection;
 MR.MeasPhaseCorrection;
+MR.addAveragestoLabels
+MR.Parameter.Recon.ImmediateAveraging='No'
 MR.SortData;
-K=MR.Data;
+K=squeeze(MR.Data);
 %% find filename
-startindex=regexp(MR.Parameter.Filename.Data,'/')
+startindex=regexp(MR.Parameter.Filename.Data,'/');
+startindex=1;
 endindex=regexp(MR.Parameter.Filename.Data,'.raw')
 
 filename=MR.Parameter.Filename.Data(startindex(end)+1:endindex-1)
@@ -33,5 +52,7 @@ else
     filenameK=['K_',filename,'_noVC.mat']
 end
 %% SAVE K
-save(filenameK,'K')
+save(filenameK,'K','-v7.3')
 disp('first part finished!')
+
+end
