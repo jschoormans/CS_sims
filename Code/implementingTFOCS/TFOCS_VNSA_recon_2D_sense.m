@@ -1,13 +1,3 @@
-%{
-     Tests total-variation problem and l1 analysis
-        on a large-scale example -- VNSA SCANS
-
-    min_x   alpha*||x||_TV + beta*||Wx||_1
-s.t.
-    || A(x) - b || <= eps
-
-where W is a wavelet operator.
-%}
 
 clear all; close all; clc; 
 addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/Matlab_Collection/spot-master'))
@@ -108,7 +98,7 @@ contOpts            = [];
 contOpts.maxIts     = 4;
 
 
-EPS=2e1
+EPS=2e5
 [x_wavelets,out_wave] = solver_sBPDN_W( A, W_wavelet, double(Ku), EPS, mu, ...
     x0(:), z0, opts, contOpts);
 
@@ -136,4 +126,4 @@ opts.errFcn     = { @(f,primal) er(primal), ...
 % VISUALIZE
 [x_wavelets,out_wave]= solver_L1RLS( A, double(Ku),EPS,x0, opts ); % THIS IS THE ONE, BUT X SHOULD BE IN SPARSIFYING FORM (WAVELET)
 
-
+%}

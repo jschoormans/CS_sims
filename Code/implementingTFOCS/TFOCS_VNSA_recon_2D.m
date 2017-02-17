@@ -16,8 +16,11 @@ addpath /home/jschoormans/lood_storage/divi/Projects/cosart/Matlab_Collection/TF
 
 
 %%
-cd('/home/jschoormans/lood_storage/divi/Ima/parrec/Jasper/VNSA/VNSA11')
-load('K_n_10022017_1139424_3_2_wipvnsaacc5v1senseV4_VC6')
+cd('/home/jschoormans/lood_storage/divi/Ima/parrec/Jasper/VNSA/VNSA12')
+% load('K_n_10022017_1139424_3_2_wipvnsaacc5v1senseV4_VC6')
+load('K_n_12022017_1411245_2_2_wipvnsaprescanfullfa2senseV4_noVC')
+% load('K_n_12022017_1416122_3_2_wipvnsafa2acc5v1senseV4_noVC')
+% load('K_n_12022017_1420335_4_2_wipvnsafa2acc5v3senseV4_noVC')
 K_orig=K; 
 
 %% 1: simple 2D example; iFFT in z-direction, one NSA

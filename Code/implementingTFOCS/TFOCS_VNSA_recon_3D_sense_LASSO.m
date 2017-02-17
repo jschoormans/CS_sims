@@ -9,8 +9,10 @@ addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/Matlab_Coll
 clear all; close all; clc; 
 cd('/home/jschoormans/lood_storage/divi/Ima/parrec/Jasper/VNSA/VNSA12')
 disp('loading k-space...')
-load('K_scan13_nocc')
-K_orig=K; 
+load('K_n_12022017_1411245_2_2_wipvnsaprescanfullfa2senseV4_noVC')
+% load('K_n_12022017_1416122_3_2_wipvnsafa2acc5v1senseV4_noVC')
+% load('K_n_12022017_1420335_4_2_wipvnsafa2acc5v3senseV4_noVC')
+K_orig=K;
 
 %% 1: simple 2D example; iFFT in z-direction, one NSA
 
