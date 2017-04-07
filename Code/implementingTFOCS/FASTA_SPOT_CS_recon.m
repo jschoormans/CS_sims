@@ -102,10 +102,10 @@ title('linear recon with phase correction')
 %% Wavelet operator
 disp('setting up wavelet operator')
 
-W=opWavelet2(n1,n2,'daubechies',4,4,0);         % define 2D wavelet operator (unsure about filter and length!)
-% FUN{1}= @(x) bartwav(x,n1,n2,1);
-% FUN{2}= @(x) bartwav(x,n1,n2,2);
-% W=opFunction(n1*n2,n1*n2,FUN);                  %defien BART wavelet ops;
+W=opWavelet2(n1,n2,'daubechies',4,8,0);         % define 2D wavelet operator (unsure about filter and length!)
+FUN{1}= @(x) bartwav(x,n1,n2,1);
+FUN{2}= @(x) bartwav(x,n1,n2,2);
+W=opFunction(n1*n2,n1*n2,FUN);                  %defien BART wavelet ops;
 
 
 E4=E3*W';                                       % add inverse wavelet op to encoding matrix
@@ -124,7 +124,7 @@ opts.tol=1e-4;
 A=@(x) E4*x;                                    % convert operator to function form 
 AT=@(x) E4'*x;
 
-mu=0.2                                          % control parameter
+mu=1                                          % control parameter
 
 [sol, outs_adapt] = fasta_sparseLeastSquares(A,AT,Ku,mu,W*linear_recon_s, opts);
 
@@ -177,9 +177,9 @@ matnsa = @(x) reshape(x,n1,n2*nNSA);
 linear_recon_sepnsa=W'*(E4'*Filt*KuNSA);
 figure(9); imshow([abs(matnsa(linear_recon_sepnsa)),abs(matcc(linear_recon_sp))],[])
 
-opts.maxIters=100
-mu=0.35             %0.4 did well (2,0.1 way too high) (0.01 bit too low)
-opts.tau=0.1        %0.1 did well 
+opts.maxIters=150
+mu=0.4             %0.4 did well (2,0.1 way too high) (0.01 bit too low)
+% opts.tau=0.1        %0.1 did well 
 [solMMV, outs_adapt] = fasta_mmv(A,AT,KuNSA,mu,ones(size(E4'*KuNSA)), opts);
 
 
@@ -188,10 +188,11 @@ figure(10); imshow(abs(matnsa(W'*solMMV)),[])
 
 
 %% compare MMV averaged with normal recons
-imReconMMV=mean(W'*solMMV,2);
+imReconMMV=mean(P'*W'*solMMV,2);
 imReconMMV=2*abs(matcc(imReconMMV))./max(abs(imReconMMV(:)));
+imreconlinear=(abs(matcc(linear_recon_sp)))./max(abs(linear_recon_sp(:)));
 
-figure(11); imshow(abs([imReconMMV,imReconFASTA,imReconBART,2*BARTsepsum]),[]); axis off; 
+figure(11); imshow(abs([imReconMMV,imReconFASTA,imReconBART,2*BARTsepsum,imreconlinear*2]),[]); axis off; 
 set(gcf,'color','w')
 
 

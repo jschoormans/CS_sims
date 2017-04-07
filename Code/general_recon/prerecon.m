@@ -36,7 +36,17 @@ MR.RemoveOversampling;
 MR.PDACorrection;
 MR.DcOffsetCorrection;
 MR.MeasPhaseCorrection;
+
+if max(MR.Parameter.Labels.Index.dyn)~=0; % if dynamics are used, convert to aver;
+    MR.Parameter.Labels.Index.aver=MR.Parameter.Labels.Index.dyn;
+    MR.Parameter.Labels.Index.dyn=zeros(size(MR.Parameter.Labels.Index.dyn));
+end
+if max(MR.Parameter.Labels.Index.aver)~=0; % if dynamics are used, convert to aver;
+% do nothing; 
+else
 MR.addAveragestoLabels
+end
+
 MR.Parameter.Recon.ImmediateAveraging='No'
 MR.SortData;
 K=squeeze(MR.Data);
@@ -52,6 +62,7 @@ else
     filenameK=['K_',filename,'_noVC.mat']
 end
 %% SAVE K
+% cd('/scratch/jschoormans/saved_K')
 save(filenameK,'K','-v7.3')
 disp('first part finished!')
 

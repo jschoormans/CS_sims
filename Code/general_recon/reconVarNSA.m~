@@ -200,6 +200,7 @@ N=size(mask);
 %generate transform operator
 XFM = Wavelet('Daubechies',4,4);	% Wavelet
 XFM=IOP
+% FT = MCp2DFT(mask, N,(conj(sensemaps)), 1, 2);
 FT = MCp2DFT(mask, N,squeeze(conj(sensemaps)), 1, 2);
 
 % initialize Parameters for reconstruction

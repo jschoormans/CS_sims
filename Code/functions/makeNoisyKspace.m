@@ -30,12 +30,18 @@ elseif P.jjj==4
 
 end
 P.MNSA=MNSA; %export MNSA
+
+
 %% add noise to kspace
 for iii=1:max(MNSA(:)) %Matrix of NSA values
 K_N=addNoise(K,P.NoiseLevel);
+
 Ku_N1=repmat(squeeze(M(:,:).*(MNSA(:,:)>=iii)),[1 1 size(K,3)]).*K_N;
+
 Ku_N2(1,:,:,:,1,iii)=permute(Ku_N1,[1,2,3,4]);
+
 end
+
 Ku_Nvar1=sum(Ku_N2,6)./permute(repmat(MNSA,[1 1 size(K,3)]),[4 2 1 3]);
 
 
