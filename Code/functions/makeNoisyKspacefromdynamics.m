@@ -16,6 +16,8 @@ if ndims(K)==3 %2d-dyns
     P.M=M;
     
     MNSA=makeMNSA(P);
+    disp(['max number of dyns used: ',num2str(max(MNSA(:))),'.'] )
+    
     if max(MNSA(:))>size(K,3)
         error('not enough dynamics')
         
@@ -57,7 +59,7 @@ elseif ndims(K)==4 % [kx,lky,coils,dims]
     %% add noise to kspace
     ncoils=size(K,3); 
     MNSA=repmat(MNSA,[1 1 ncoils]);
-    M=repmat(M,[1 1 ncoils])
+    M=repmat(M,[1 1 ncoils]);
     for iii=1:max(MNSA(:)) %Matrix of NSA values
         K_N=K(:,:,:,iii);
         Ku_N1=squeeze(M(:,:,:).*(MNSA(:,:,:)>=iii)).*K_N;

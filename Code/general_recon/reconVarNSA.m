@@ -40,12 +40,13 @@ P.squareksp=true;
 addpath(genpath('L:\basic\divi\Projects\cosart\CS_simulations\Code'))
 addpath(genpath('C:\Users\jschoormans\Dropbox\phD\bart-0.3.01')); 
 addpath(genpath('L:\basic\divi\Projects\cosart\CS_simulations\sparseMRI_v0.2'))
-
+mkdir([P.resultsfolder,P.filename])
 
 P=setParams(K,P);
-K=FFTmeas(K);
+K=FFTmeas(K,P);
 [data,P.mask,P.MNSA,P.pdf]=makemask(K,P);
 
+if P.sensemapsprovided==0;
 if P.sensemapsloop==1
     ;
     if P.parfor==1
@@ -63,6 +64,7 @@ if P.sensemapsloop==1
 else
         P.sensemapsloop=0;
         P.sensemaps=(estsensemaps(data,P));
+end
 end
 % P.sensemaps=ones(size(P.sensemaps)); disp('transforming sense maps into ones')
 
@@ -123,33 +125,47 @@ if and((P.squareksp==false),(P.xfmWeight>0));
     error('wavelet enabled -- use squareksp!');end
 end
 
-function K=FFTmeas(K)
+function K=FFTmeas(K,P)
 % FFT IN MEASUREMENT DIRECTIONS+normalization
 tic; disp('FFT in measurement direction')
 K=ifftshift(ifft(K,[],1),1);;
 K=K./max(K(:)); %normalize kspace
 %K=squeeze(K); %WHY THIS???
 disp('if errors with real data uncomment squeeze' )
+
+%      SAVE KSP FOR ALL SLICES 
+% for i=1:size(K,3)
+%  disp(['saving ',num2str(i),' of ',num2str(size(K,3))])
+%   save(['fft',num2str(i),'.mat'],squeeze(K(:,:,i,:,:))) 
+% end
 toc;
+
 end
 
 function [data,mask,MNSA,pdf]=makemask(K,P)
+
+% 1) make mask
 tic; disp('make mask and setting up data...')
 Ks=squeeze(K(round(size(K,1)/2),:,:,1,:)); %k-space for one channel and one slice
 fullmask=Ks~=0;             %find mask used for scan (nx*ny*NSA)
 MNSA=sum(fullmask,3);       %find NSA for all k-points in mask 
 
+% 2) average over NSA 
 data=sum(K,5);              %sum of data over NSA
 data=data./permute(...
     repmat(MNSA,[1 1 P.nx P.nc]),[3 1 2 4]);            %mean of data over NSA 2
 data(isnan(data))=0;        %clear up NaN values (due to /0)
 
+% 3) make square KSPACE
 if P.squareksp==true
 data=squareksp(data,[2 3]);       %make k-spsace square and size a 2^n (bit buggy, not needed for nx now)
 MNSA=squareksp(MNSA);       %make MNSA square and size of 2^n
 end
+
+% 4) calculate 2D mask (??) and PDF
 mask=double(MNSA>0);        %2d mask (no NSA dimension)
 pdf=estPDF(mask);       %pdf is used for first guess; should be fixed!
+
 disp(['acceleration: ',num2str(sum(mask(:))/(P.ny*P.nz))])
 toc
 end
@@ -187,10 +203,12 @@ else
     disp('using provided sense maps')
     sensemaps=P.sensemaps;
 end
-if ndims(sensemaps)==3 % for 2D 
-    sensemaps=permute(sensemaps,[4 1 2 3])
-end
+if ndims(squeeze(sensemaps))==3 % for 2D 
+%     sensemaps=permute(sensemaps,[4 1 2 3])
+    sensemaps=fftshift(sensemaps,3);
+        sensemaps=fftshift(sensemaps,2);
 
+end
 end
 
 function param=setReconParams(recondata,MNSA,mask,pdf,sensemaps,P)
@@ -245,7 +263,7 @@ recon=recon./max(recon(:));
 end
 
 function saverecon(recon,P)
-%save recons (TODO!!)
+save recons (TODO!!)
 disp('saving recons...')
 cd(P.resultsfolder)
 
