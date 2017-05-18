@@ -40,7 +40,7 @@ P.squareksp=true;
 addpath(genpath('L:\basic\divi\Projects\cosart\CS_simulations\Code'))
 addpath(genpath('C:\Users\jschoormans\Dropbox\phD\bart-0.3.01')); 
 addpath(genpath('L:\basic\divi\Projects\cosart\CS_simulations\sparseMRI_v0.2'))
-mkdir([P.resultsfolder,P.filename])
+% mkdir([P.resultsfolder,P.filename])
 
 P=setParams(K,P);
 K=FFTmeas(K,P);
@@ -177,7 +177,7 @@ pdf=pdf+eps;
 end
 
 function sensemaps=estsensemaps(recondata,P)
-if ~isfield(P,'sensemapsprovided')
+if ~isfield(P,'sensemapsprovided') | P.sensemapsprovided==0;
     disp('Estimating sense maps');tic
     
     if P.sensemapsloop==1
@@ -217,7 +217,7 @@ N=size(mask);
 
 %generate transform operator
 XFM = Wavelet('Daubechies',4,4);	% Wavelet
-XFM=IOP
+% XFM=IOP
 FT = MCp2DFT(mask, N,squeeze(conj(sensemaps)), 1, 2);
 
 % initialize Parameters for reconstruction

@@ -78,7 +78,7 @@ methods
             sensemapsslice=fftshift((MR.P.sensemaps(sl,:,:,:)),2);
             sensemapsslice=ones(size(sensemapsslice));
             param=setReconParams(MR,recondata,MR.P.MNSA,MR.P.mask,MR.P.pdf,sensemapsslice,MR.P);
-            param.data=squeeze(recondata);
+            param.data=squeeze(recondata)./max(abs(param.data(:)));
             param.data=squeeze(bart('fftmod -i 7',recondata));
             recon(:,:,sl)=runCS(MR,param,MR.P);
         end
@@ -157,7 +157,11 @@ methods
             XFM=IOP
         end
         
-        FT = MCp2DFT(mask, N,squeeze(conj(sensemaps)), 1, 2);
+        %         FT = MCp2DFT(mask, N,squeeze(conj(sensemaps)), 1, 2);
+        
+        ph=1;% TO DO: ADD LOW RES PHASE ESTIMATE  
+        
+        FT = MCp2DFT(mask, N,squeeze((sensemaps)), ph, 2);
         
         % initialize Parameters for reconstruction
         param = init;

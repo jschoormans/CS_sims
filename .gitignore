@@ -1,0 +1,16 @@
+
+*.pdf
+*.eps
+*.png
+*.mat
+*.m~
+*.lab
+*.raw
+*.jpg
+*.rec
+*.par
+*.db
+*.tiff
+*.nii
+*.txt
+*.tif
