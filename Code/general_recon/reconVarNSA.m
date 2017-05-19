@@ -116,7 +116,8 @@ if ~isfield(P,'resultsfolder')
     P.resultsfolder=uigetdir('select resultsfolder');end
 if ~ isfield(P,'savename')
     C=clock;
-    P.savename=['recon-',date,'-',num2str(C(4)),'-',num2str(C(5))]; end
+    P.savename=['recon-',date,'-',num2str(C(4)),'-',num2str(C(5))]; 
+end
 if ~isfield(P,'sensemapsloop')
     P.sensemapsloop=0
 end
@@ -125,6 +126,7 @@ if and((P.squareksp==false),(P.xfmWeight>0));
     error('wavelet enabled -- use squareksp!');end
 end
 
+
 function K=FFTmeas(K,P)
 % FFT IN MEASUREMENT DIRECTIONS+normalization
 tic; disp('FFT in measurement direction')
@@ -132,12 +134,6 @@ K=ifftshift(ifft(K,[],1),1);;
 K=K./max(K(:)); %normalize kspace
 %K=squeeze(K); %WHY THIS???
 disp('if errors with real data uncomment squeeze' )
-
-%      SAVE KSP FOR ALL SLICES 
-% for i=1:size(K,3)
-%  disp(['saving ',num2str(i),' of ',num2str(size(K,3))])
-%   save(['fft',num2str(i),'.mat'],squeeze(K(:,:,i,:,:))) 
-% end
 toc;
 
 end
@@ -224,9 +220,8 @@ N=size(mask);
 XFM = Wavelet('Daubechies',4,4);	% Wavelet
 % XFM=IOP
 
-ph = phase_estimate(recondata,sensemaps);
+ph = phase_estimate(recondata,sensemaps,P);
 ph=exp(i*ph);
-% ph=1; % BAD -- TESTING NOW ; 
 disp('ph=1!!')
 FT = MCp2DFT(mask, N,squeeze(conj(sensemaps)), ph, 2);
 
@@ -293,13 +288,10 @@ P
 disp('Finished!'); diary off
 end
 
-function ph = phase_estimate(recondata,sensemaps)
+function ph = phase_estimate(recondata,sensemaps,P)
 % low res phase estimate 
-I=bart(['resize -c 1 ',num2str(floor(P.ny/4)),' 2 ',num2str(floor(P.nz/4))],recondata);
-I=bart(['resize -c 1 ',num2str(P.ny),' 2 ',num2str(P.nz)],I);
-
-disp('TO DO: CHANGE 1024 to automated resolution!!!')
-
+I=bart(['resize -c 1 ',num2str(floor(size(recondata,2)/4)),' 2 ',num2str(floor(size(recondata,3)/4))],recondata);
+I=bart(['resize -c 1 ',num2str(size(recondata,2)),' 2 ',num2str(size(recondata,2))],I);
 I=bart('fft -i 7',I);
 I=ifftshift(ifftshift(I,2),3);
 I=bart('fmac -C',I,sensemaps);
