@@ -6,7 +6,7 @@ addpath(genpath('C:\Users\jschoormans\Dropbox\phD\bart-0.3.01')); vars
 
 cd('L:\basic\divi\Ima\parrec\Jasper\VNSA\VNSA_50\VNSA_50')
 files=dir('*.mat')
-load(files(5).name)
+load(files(7).name)
 
 %% make sense maps
 Kref=mean(K,4); %still use coils though
@@ -97,7 +97,7 @@ PR.Itnlim=15;
 PR.noNSAcorr=false;
 PR.TVWeight=(0);
 PR.TGVfactor=0;
-PR.xfmWeight=0%.3e-2;
+PR.xfmWeight=3e-2%.3e-2;
 PR.reconslices=1;
 PR.squareksp=true;
 PR.resultsfolder='/home/jschoormans/lood_storage/divi/Projects/cosart/CS_simulations/experiments/VNSA_50_retrospective_new/Results/'

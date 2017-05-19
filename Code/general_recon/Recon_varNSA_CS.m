@@ -154,13 +154,21 @@ methods
         if P.xfmWeight>0
             XFM=Wavelet_SQKSP(size(mask),[1,2]);
         else
-            XFM=IOP
+            XFM=IOP; %Identity 
         end
         
-        %         FT = MCp2DFT(mask, N,squeeze(conj(sensemaps)), 1, 2);
+        % low res phase estimate
+        I=bart(['resize -c 1 ',num2str(floor(P.ny/4)),' 2 ',num2str(floor(P.nz/4))],recondata);  
+        I=bart(['resize -c 1 ',num2str(P.ny),' 2 ',num2str(P.nz)],I);
         
-        ph=1;% TO DO: ADD LOW RES PHASE ESTIMATE  
-        
+        I=bart('fft -i 7',I);
+        I=ifftshift(ifftshift(I,2),3);
+        I=bart('fmac -C',I,sensemaps);
+        I=sum(I,4);
+        I=squeeze(I);
+        ph=angle(I);
+        ph=exp(i*ph);
+
         FT = MCp2DFT(mask, N,squeeze((sensemaps)), ph, 2);
         
         % initialize Parameters for reconstruction
@@ -205,7 +213,20 @@ methods
         recon=recon./max(recon(:));
     end
     
-
+    
+    function ph = phase_estimate(recondata,sensemaps)
+        % low res phase estimate
+        I=bart('resize -c 1 100 2 100',recondata);  
+        I=bart('resize -c 1 1024 2 1024',I);
+        
+        I=bart('fft -i 7',I);
+        I=ifftshift(ifftshift(I,2),3);
+        I=bart('fmac -C',I,sensemaps);
+        I=sum(I,4);
+        I=squeeze(I);
+        ph=angle(I);
+    end
+    
     
 end
 end

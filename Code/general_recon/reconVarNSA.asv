@@ -224,10 +224,7 @@ N=size(mask);
 XFM = Wavelet('Daubechies',4,4);	% Wavelet
 % XFM=IOP
 
-ph = phase_estimate(recondata,sensemaps);
-ph=exp(i*ph);
-% ph=1; % BAD -- TESTING NOW ; 
-disp('ph=1!!')
+ph = phase_estimate(recondata,sensemaps)
 FT = MCp2DFT(mask, N,squeeze(conj(sensemaps)), ph, 2);
 
 % initialize Parameters for reconstruction
@@ -279,14 +276,12 @@ cd(P.resultsfolder)
 
 ni=make_nii(abs(recon))
 save_nii(ni,[P.savename,'.nii'])
-
 % save(P.savename,'recon')
 % disp('saving images...')
 % A=figure(5); imshow(abs(recon));axis off;
 % export_fig(P.savename,'-native')
 % B=figure(6); imshow(abs(P.MNSA));axis off;colormap jet; colorbar
 % export_fig([P.savename,'mask'],'-native')
-
 diary([P.savename,'settings.txt']);
 disp('saving settings...')
 P
@@ -295,15 +290,11 @@ end
 
 function ph = phase_estimate(recondata,sensemaps)
 % low res phase estimate 
-I=bart(['resize -c 1 ',num2str(floor(P.ny/4)),' 2 ',num2str(floor(P.nz/4))],recondata);
-I=bart(['resize -c 1 ',num2str(P.ny),' 2 ',num2str(P.nz)],I);
-
-disp('TO DO: CHANGE 1024 to automated resolution!!!')
+I=bart('resize -c 1 100 2 100',recondata);
+I=bart('resize -c 1 1024 2 1024',I);
 
 I=bart('fft -i 7',I);
-I=ifftshift(ifftshift(I,2),3);
-I=bart('fmac -C',I,sensemaps);
+I=bart('fmac -C',I,sensemapsres);
 I=sum(I,4);
-I=squeeze(I);
-ph=angle(I);
+I=squeeze(I); figure(2); imshow((I),[])
 end

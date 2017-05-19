@@ -85,9 +85,13 @@ while(1)
         figure(100);  
         subplot(121)
         sf1(k+1)=abs(f1);
+        sf2(k+1)=abs(ERRobj);
+        hold on 
         plot([0:k],sf1,'k-');
+        plot([0:k],sf2,'g-');
+        hold off
         subplot(222);
-        imshow(params.V(:,:,1),[]);axis off;
+        imshow(sum(params.V,3),[]);axis off;
         subplot(224);
         imshow(abs(params.XFM'*x),[]);axis off;
 
