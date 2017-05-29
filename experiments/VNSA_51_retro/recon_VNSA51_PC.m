@@ -69,7 +69,8 @@ end
 end
 %% SAVE R (WITHOUT SENSEMAPS)
 for jj=1:3
-for ii=1:length(accvector);
+for ii=1:length(accvector); 
+    
 R{2,ii,jj}.sensemaps=[];
 end
 end

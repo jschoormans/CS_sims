@@ -19,7 +19,7 @@ end
 
 
 figure(100); 
-x=zeros(size(A'*b)); 
+% x=zeros(size(A'*b)); 
 subplot(221); imshow(rr(x)); drawnow;
 
 grad=-gradient(A,b,x,T,lambda);
