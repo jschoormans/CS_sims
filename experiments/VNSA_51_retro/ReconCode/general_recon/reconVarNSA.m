@@ -37,13 +37,14 @@ P.reconslices=250;
 P.squareksp=true;
 
 %}
-addpath(genpath('L:\basic\divi\Projects\cosart\CS_simulations\Code'))
 addpath(genpath('C:\Users\jschoormans\Dropbox\phD\bart-0.3.01')); 
 % mkdir([P.resultsfolder,P.filename])
 
 P=setParams(K,P);
 K=FFTmeas(K,P);
 [data,P.mask,P.MNSA,P.pdf]=makemask(K,P);
+
+
 
 if P.sensemapsprovided==0;
     if P.sensemapsloop==1
@@ -65,15 +66,10 @@ if P.sensemapsprovided==0;
         P.sensemaps=(estsensemaps(data,P));
     end
 else
-    if P.squareksp==true %resize sensemaps
-        sensemaps= bart('fft 7',P.sensemaps);
-        sensemaps= squareksp(sensemaps);
-        sensemaps = bart('fft -i 7',sensemaps);
-        P.sensemaps= fftshift(sensemaps,3);
-    end
-    
+
+        P.sensemaps=P.sensemaps
+
 end
-% P.sensemaps=ones(size(P.sensemaps)); disp('transforming sense maps into ones')
 
 if P.parfor==0
 for sl=P.reconslices %loop over slices
@@ -180,7 +176,6 @@ pdf=pdf+eps;
 end
 
 function sensemaps=estsensemaps(recondata,P)
-if ~isfield(P,'sensemapsprovided') | P.sensemapsprovided==0;
     disp('Estimating sense maps');tic
     
     if P.sensemapsloop==1
@@ -202,20 +197,6 @@ if ~isfield(P,'sensemapsprovided') | P.sensemapsprovided==0;
         sensemaps=bart('ecalib -r15 -m1',ksp);
     end
     toc
-else
-    disp('using provided sense maps')
-    sensemaps=P.sensemaps;
-end
-if ndims(squeeze(sensemaps))==3 % for 2D
-    %     sensemaps=permute(sensemaps,[4 1 2 3])
-    sensemaps=fftshift(sensemaps,3);
-    sensemaps=fftshift(sensemaps,2);
-    
-end
-
-if P.squareksp==true; 
-sensemaps=squareksp(sensemaps);     
-end
 
 end
 
@@ -226,6 +207,8 @@ param = init;
 
 sensemaps=squeeze(sensemaps); 
 param.data=squeeze(recondata);
+
+
 
 %generate transform operator
 XFM = Wavelet('Daubechies',4,4);	% Wavelet

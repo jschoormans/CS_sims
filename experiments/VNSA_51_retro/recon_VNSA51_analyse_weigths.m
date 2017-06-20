@@ -43,6 +43,7 @@ P.acc=4;
 P.jjj=5 % 5 6 7 
 P.noiselevel=0
 [KD{1}, KD{2}, KD{3}]=makeNoisyKspacefromdynamics(K,P);
+
 %% RECON HERE
 %K should be [kx ky kz ncoils nNSA]
 % FOR CERTAIN ACC FACTORS - LOOP OVERNIGHT
