@@ -13,7 +13,7 @@ methods
         MR = MR@MRecon(filename);
         MR.P.resize=true;
         MR.P.resize_size=3;
-        MR.P.fixsliceintensities=false; 
+        MR.P.fixsliceintensities=true; 
         MR.P.visualize_nlcg=0;
         MR.P.parallel=false;
         MR.P.noNSAcorr=0;
@@ -50,17 +50,13 @@ methods
         [MR.P.mask,MR.P.MNSA,MR.P.pdf]=makemask(MR);
         MR.Average;      
 
-        checkerboard=create_checkerboard([1,size(MR.Data,2),size(MR.Data,3)]);
+        checkerboard=create_checkerboard([size(MR.Data,1),size(MR.Data,2),size(MR.Data,3)]);
         MR.Data=bsxfun(@times,checkerboard,MR.Data);    %undo checkerboard        
         MR.P.sensemaps=estsensemaps(MR);        % calculate sense maps
-        MR.Data=fftshift(ifft(ifftshift(MR.Data,1),[],1),1);
-        
-        %remove oversampling from sense maps and MR.Data;
-        nsl=size(MR.Data,1)/MR.Parameter.Encoding.KxOversampling;
-        cropslices=floor((size(MR.Data,1)/2)-nsl/2):floor((size(MR.Data,1)/2)-nsl/2)+nsl-1;
-        MR.P.sensemaps=MR.P.sensemaps(cropslices,:,:,:);
-        MR.Data=MR.Data(cropslices,:,:,:);
-        
+%         MR.P.sensemaps=fftshift(fftshift(MR.P.sensemaps,2),3); % possible   
+        MR.Data=fftshift(fft(ifftshift()))
+        MR.RemoveOversampling % in this case, sense maps size is not the smae 
+
         MR.Data=MR.Data./max(abs(MR.Data(:))); %normalize
         
         % add other parameters in P
@@ -71,22 +67,20 @@ methods
     end
     function ReconCS(MR)
         recon=zeros(size(MR.Data,2),size(MR.Data,3),length(MR.P.reconslices)); %pre-allocate
-        param=init(MR.P);
-        
         if MR.P.parallel==true
             parfor sl=MR.P.reconslices %loop over slices
                 recondata=MR.Data(sl,:,:,:); % data of one slice to be used in recon
                 sensemapsslice=squeeze(MR.P.sensemaps(sl,:,:,:));
-                param_sl=setReconParams(MR,recondata,sensemapsslice,param);
-                recon(:,:,sl)=runCS(MR,param_sl,MR.P);
+                param=setReconParams(MR,recondata,MR.P.MNSA,MR.P.mask,MR.P.pdf,sensemapsslice,MR.P);
+                recon(:,:,sl)=runCS(MR,param,MR.P);
             end
         else
             for sl=MR.P.reconslices %loop over slices
                 tic;
                 recondata=MR.Data(sl,:,:,:); % data of one slice to be used in recon
                 sensemapsslice=squeeze(MR.P.sensemaps(sl,:,:,:));
-                param_sl=setReconParams(MR,recondata,sensemapsslice,param);
-                recon(:,:,sl)=runCS(MR,param_sl,MR.P);
+                param=setReconParams(MR,recondata,MR.P.MNSA,MR.P.mask,MR.P.pdf,sensemapsslice,MR.P);
+                recon(:,:,sl)=runCS(MR,param,MR.P);
                 time_iter=toc;
                 fprintf('slice: %u of %u | delta t: %f2 \n',sl,length(MR.P.reconslices),time_iter)
             end
@@ -142,17 +136,51 @@ methods
         sensemaps=conj(sensemaps);
     end
     
-    function param=setReconParams(MR,recondata,sensemaps,param)
+    function param=setReconParams(MR,recondata,MNSA,mask,pdf,sensemaps,P)
+
+        N=size(mask);
+        if P.xfmWeight>0
+%           XFM=Wavelet_SQKSP(size(mask),[1,2]);
+          XFM=Wav_SPOT(N);   %15 times faster....
+        else
+            XFM=IOP; %Identity 
+        end
+        param = init;
         param.data=squeeze(recondata);
-        N=size(MR.P.mask);
+
         % low res phase estimate        
-        FT1 = MCp2DFT(MR.P.mask, N,sensemaps, 1, 2);       
+        FT1 = MCp2DFT(mask, N,sensemaps, 1, 2);       
+
         I=FT1'*param.data; 
         ph=angle(I);
         ph=exp(1i*ph);
-        FT = MCp2DFT(MR.P.mask, N,sensemaps, ph, 2);
-        param.FT = FT;
-
+        FT = MCp2DFT(mask, N,sensemaps, ph, 2); param.FT = FT;
+        % initialize Parameters for reconstruction
+        
+        param.XFM = XFM; 
+        param.TV = TVOP;
+        param.TVWeight =P.TVWeight;     % TV penalty
+        param.TV2=TV2op;
+        param.TV2Weight=P.TGVfactor*param.TVWeight;
+        
+        param.Itnlim = P.Itnlim;
+        param.lineSearchItnlim=100;
+        param.Debug=0;
+        param.lineSearchAlpha=1e-5;
+        
+        if P.noNSAcorr
+            param.V=ones(size(MNSA,1),size(MNSA,2),P.nc);
+            param.xfmWeight = P.xfmWeight;  % L1 wavelet penalty
+        else
+            param.V=(MNSA.*mask);
+            param.xfmWeight=P.xfmWeight*(mean(param.V(mask~=0)));
+            param.TVWeight =param.TVWeight*(mean(param.V(mask~=0)));     % TV penalty
+            param.TV2Weight=param.TV2Weight*(mean(param.V(mask~=0)));
+            param.V=repmat((MNSA.*mask),[1 1 P.nc]);
+        end
+        param.Beta='PR_restart';
+        param.display=MR.P.visualize_nlcg;
+        
     end
     
     function recon=runCS(MR,param,P)
@@ -161,7 +189,7 @@ methods
             res = MCfnlCg_test(res,param);
         end
         recon = param.XFM'*res;
-%         recon=recon./max(recon(:));
+        recon=recon./max(recon(:));
     end
     
     function fixsliceintensities(MR)
