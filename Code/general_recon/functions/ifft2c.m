@@ -1,12 +1,8 @@
 function res = ifft2c(x)
-%rr
-%
 % res = ifft2c(x)
-% 
-% orthonormal centered 2D ifft
-%
-% (c) Michael Lustig 2005
+% modified for more dimensions (eg coils)
+imsize=size(x,1)*size(x,2);
 
-% res = sqrt(length(x(:)))*fftshift(ifft2(ifftshift(x)));
-
-res = sqrt(length(x(:)))*(ifft2(ifftshift(x))); % trying out stuff.
+for iter=1:size(x,3)
+res(:,:,iter) = sqrt(size(x,1)*size(x,2))*fftshift(ifft2(ifftshift(x(:,:,iter))));
+end

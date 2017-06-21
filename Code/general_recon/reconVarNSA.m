@@ -37,8 +37,6 @@ P.reconslices=250;
 P.squareksp=true;
 
 %}
-addpath(genpath('L:\basic\divi\Projects\cosart\CS_simulations\Code'))
-addpath(genpath('C:\Users\jschoormans\Dropbox\phD\bart-0.3.01')); 
 % mkdir([P.resultsfolder,P.filename])
 
 P=setParams(K,P);

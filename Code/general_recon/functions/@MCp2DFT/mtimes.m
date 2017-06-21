@@ -18,11 +18,8 @@ else
     b = reshape(b,a.dataSize(1),a.dataSize(2));
     b=b.*(a.ph); %18-5-2017 added to maintain good phase for many iterations
 
-    for ch=1:a.nchans
-        resi=b.*conj(a.sensmaps(:,:,ch));
-        res(:,:,ch) = fft2c(resi).*a.mask;
-    end
-    
+    resi=bsxfun(@times,b,conj(a.sensmaps));
+    res=bsxfun(@times,fft2c(resi),a.mask);
 end
 
 if size(b,2) == 1

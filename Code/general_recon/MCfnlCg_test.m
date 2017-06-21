@@ -80,8 +80,8 @@ while(1)
 	x = (x + t*dx);
 
 	%--------- uncomment for debug purposes ------------------------	
-	disp(sprintf('%d   , obj: %f, RMS: %f, L-S: %d, ErrObj: %f', k,f1,RMSerr,lsiter,ERRobj));
     if params.display==1
+        disp(sprintf('%d   , obj: %f, RMS: %f, L-S: %d, ErrObj: %f', k,f1,RMSerr,lsiter,ERRobj));
         figure(100);  
         subplot(121)
         sf1(k+1)=abs(f1);

@@ -42,7 +42,10 @@ methods
         [MR.P.nx MR.P.ny MR.P.nz MR.P.nc MR.P.nNSA]=size(MR.Data); %could be placed elsewhere in
         if ~isfield(MR.P,'resize'); MR.P.resize=true; end; 
         if ~isfield(MR.P,'resize_size'); MR.P.resize_size=3; end; 
-        if ~isfield(MR.P,'MR.P.fixsliceintensities'); MR.P.MR.P.fixsliceintensities=true; end
+        if ~isfield(MR.P,'fixsliceintensities'); MR.P.fixsliceintensities=true; end
+        if ~isfield(MR.P,'visualize_nlcg'); MR.P.visualize_nlcg=0 ;end
+        if ~isfield(MR.P,'reconslices'); MR.P.reconslices=[1:MR.P.nx];        end
+
         % make MNSA mask (could we do this before SortData)?
         disp('make mask...')
         [MR.P.mask,MR.P.MNSA,MR.P.pdf]=makemask(MR);
@@ -50,40 +53,33 @@ methods
         % do averaging
         MR.Average;
         
-        % make square kspace (if this is one of the options?)
-        
-        
         % calculate sense maps
         sensemaps=estsensemaps(MR);
         MR.P.sensemaps=sensemaps;
         MR.K2IM
-        
+
         MR.Data=MR.Data./max(abs(MR.Data(:))); %normalize
-        disp('Perform 1 finished!')
-%         if MR.P.squareksp==true
-%             MR.Data=squareksp(MR.Data,[2 3]);       %make k-spsace square and size a 2^n (bit buggy, not needed for nx now)
-%             MR.P.sensemaps=squareksp(MR.P.sensemaps,[2,3]);
-%             MR.P.mask=squareksp(MR.P.mask);
-%             MR.P.MNSA=squareksp(MR.P.MNSA);
-%             MR.P.pdf=squareksp(MR.P.pdf);
-%         end
         
+        checkerboard=(((-1).^[1:size(MR.Data,2)]).*1i).'*(((-1).^[1:size(MR.Data,3)]).*1i);
+        checkerboard=permute(checkerboard,[3 1 2]);
+        MR.Data=MR.Data.*repmat(checkerboard,[size(MR.Data,1) 1 1 size(MR.Data,4)]);               %undo checkerboard
+        
+        disp('Perform 1 finished!')
+
         
     end
     function ReconCS(MR)
-        
-        if isempty('MR.P.reconslices')
-        MR.P.reconslices=[1:MR.P.nx];
-        end
-        
-        % for all slices: set reconparams
-        for sl=MR.P.reconslices %loop over slices
+        tic
+        parfor sl=MR.P.reconslices %loop over slices
+%             tic;
             recondata=MR.Data(sl,:,:,:); % data of one slice to be used in recon
             sensemapsslice=squeeze(MR.P.sensemaps(sl,:,:,:));
             param=setReconParams(MR,recondata,MR.P.MNSA,MR.P.mask,MR.P.pdf,sensemapsslice,MR.P);
             recon(:,:,sl)=runCS(MR,param,MR.P);
+%             time_iter=toc;
+%             fprintf('slice: %u of %u | delta t: %f2 \n',sl,length(MR.P.reconslices),time_iter)
         end
-%         MR.Data=recon;  % UNCOMMENT WHEN CODE IS TRULY FINISHED 
+        toc
         MR.P.Recon=recon;
     end
     
@@ -92,28 +88,20 @@ methods
         all_klines=double([MR.Parameter.Labels.Index.ky MR.Parameter.Labels.Index.kz]);
         all_klines(MR.Parameter.Labels.Index.typ~=1)=NaN;
         numbers=1:length(MR.Parameter.Labels.Index.typ);
-        
         mm=length(numbers);
         mk=min(all_klines);
         mak=max(all_klines);
-        
         nchans=max(MR.Parameter.Labels.Index.chan);
         
         V=zeros(mak(1)+abs(mk(1))+1,mak(2)+abs(mk(2))+1,nchans);
-        tic
         for iline=numbers(MR.Parameter.Labels.Index.typ==1);
-            
             chan=MR.Parameter.Labels.Index.chan(iline);
-            
             xc=all_klines(iline,1)+1+abs(mk(1));
             yx=all_klines(iline,2)+1+abs(mk(2));
-            
             nsa=(V(xc,yx,chan));
             V(xc,yx,chan)=V(xc,yx,chan)+1; % is actually MNSA --> easier to keep other function for now
-            
             nsa_number(iline) = nsa;
         end
-        toc
         MR.Parameter.Labels.Index.aver=(nsa_number).';
         MR.Parameter.Labels.Index.dyn=zeros(size(MR.Parameter.Labels.Index.dyn)); %remove dynamics
     end % GIVES BUGS NOW???
@@ -146,18 +134,11 @@ methods
     end
     
     function param=setReconParams(MR,recondata,MNSA,mask,pdf,sensemaps,P)
-        tic; disp('setting l1-recon parameters');
-        addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/CS_simulations/sparseMRI_v0.2'));
-        addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/Matlab_Collection/Wavelab850'));
-        addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/Matlab_Collection/spot-master'))
 
-        
         N=size(mask);
-        
-        %generate transform operator
-        
         if P.xfmWeight>0
-            XFM=Wavelet_SQKSP(size(mask),[1,2]);
+%           XFM=Wavelet_SQKSP(size(mask),[1,2]);
+          XFM=Wav_SPOT(N);   %15 times faster....
         else
             XFM=IOP; %Identity 
         end
@@ -192,13 +173,12 @@ methods
             param.V=(MNSA.*mask);
             param.xfmWeight=P.xfmWeight*(mean(param.V(mask~=0)));
             param.TVWeight =param.TVWeight*(mean(param.V(mask~=0)));     % TV penalty
-            param.TV2Weight=param.TV2Weight*(mean(param.V(mask~=0)))
+            param.TV2Weight=param.TV2Weight*(mean(param.V(mask~=0)));
             param.V=repmat((MNSA.*mask),[1 1 P.nc]);
         end
         param.Beta='PR_restart';
-        param.display=1;
+        param.display=MR.P.visualize_nlcg;
         
-        toc;
     end
     
     function recon=runCS(MR,param,P)

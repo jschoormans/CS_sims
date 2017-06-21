@@ -1,11 +1,11 @@
 function res = fft2c(x)
 
 % res = fft2c(x)
+% modified for more dimensions (eg coils)
+
+imsize=size(x,1)*size(x,2);
+
+for iter=1:size(x,3)
+res(:,:,iter) = 1/sqrt(imsize)*fftshift(fft2(ifftshift(x(:,:,iter))));
+end
 % 
-% orthonormal forward 2D FFT
-%
-% (c) Michael Lustig 2005
-
-% res = 1/sqrt(length(x(:)))*fftshift(fft2(ifftshift(x)));
-
-res = 1/sqrt(length(x(:)))*fftshift(fft2((x))); %trying out...
