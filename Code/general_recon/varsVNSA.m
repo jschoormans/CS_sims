@@ -17,5 +17,7 @@ rmpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/CS_simulatio
 addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/CS_simulations/Code/general_recon'))
 addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/Matlab_Collection/Wavelab850'));
 addpath(genpath('/opt/amc/matlab/toolbox/MRecon/'))
+addpath(genpath('/home/jschoormans/lood_storage/divi/Projects/cosart/Matlab_Collection/imagine'));
+
 
 end

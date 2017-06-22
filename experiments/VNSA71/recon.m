@@ -20,19 +20,19 @@ files=dir([folder,'/*.raw'])
 
 for iter=4:9
 MR=Recon_varNSA_CS(strcat(folder,files(iter).name));
-MR.Parameter.Recon.ArrayCompression='Yes'; %coil compression
-MR.Parameter.Recon.ACNrVirtualChannels=4;
 
 MR.Perform1;
 MR.P.WeightedL2=1;
-MR.P.resize=true;
+MR.P.resize=false;
 MR.P.fixsliceintensities=false;
-MR.P.parallel=0;
-MR.P.TVWeight=1e-5;
-MR.P.xfmWeight=2e-5;
+MR.P.parallel=1;
+MR.P.TVWeight=2e-5;
+MR.P.xfmWeight=4e-5;
 MR.P.Itnlim=25;
-MR.P.outeriter=1;
+MR.P.outeriter=2;
 MR.P.TGVfactor=0;
+
+% MR.P.reconslices=100:200;
 MR.ReconCS
 MR.fixsliceintensities
 MR.resizerecon 

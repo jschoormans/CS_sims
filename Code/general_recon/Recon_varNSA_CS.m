@@ -24,7 +24,12 @@ methods
         MR.P.outeriter=1;
         MR.P.TGVfactor=0;
         MR.Parameter.Recon.RemovePOversampling='No'
-        
+        MR.P.prewhiten=true; 
+        MR.Parameter.Recon.ImmediateAveraging='No' 
+        MR.Parameter.Recon.ArrayCompression='No'; %MUST BE NO, for prewhitening 
+        MR.P.cc_number=4;
+        MR.P.cc=true;
+
     end
     % Overload (overwrite) the existing Perform function of MRecon
         function Perform( MR )
@@ -36,11 +41,13 @@ methods
         end
 
     
-    function Perform1( MR )
-        MR.Parameter.Parameter2Read.typ = 1;
-        MR.Parameter.Recon.ImmediateAveraging='No' 
-               
+    function Perform1( MR )   
         % Produce k-space Data (using existing MRecon functions)
+        MRn=MR.Copy; MRn.Parameter.Parameter2Read.typ=5;
+        MRn.ReadData
+        MR.P.eta=MRn.Data;
+
+        MR.Parameter.Parameter2Read.typ=1;
         MR.ReadData;
         MR.DcOffsetCorrection;
         MR.PDACorrection;
@@ -48,11 +55,18 @@ methods
         MR.MeasPhaseCorrection;
         MR.addAveragestoLabels
         MR.SortData;
+        MR.Data=MR.Data;
         [MR.P.mask,MR.P.MNSA,MR.P.pdf]=makemask(MR);
         MR.Average;      
+        MR.preWhiten;
 
         checkerboard=create_checkerboard([1,size(MR.Data,2),size(MR.Data,3)]);
-        MR.Data=bsxfun(@times,checkerboard,MR.Data);    %undo checkerboard        
+        MR.Data=bsxfun(@times,checkerboard,MR.Data);    %undo checkerboard    
+        
+        if MR.P.cc        % coil compression 
+        MR.Data=bart(['cc -S -p ',num2str(MR.P.cc_number)],MR.Data);
+        end
+        
         MR.P.sensemaps=estsensemaps(MR);        % calculate sense maps
         MR.Data=fftshift(ifft(ifftshift(MR.Data,1),[],1),1);
         
@@ -72,17 +86,22 @@ methods
     end
     function ReconCS(MR)
         recon=zeros(length(MR.P.reconslices),size(MR.Data,2),size(MR.Data,3)); %pre-allocate
-        param=init(MR.P);
-        
+
         if MR.P.parallel==true
+            
+            tic
             parfor sl_iter=1:length(MR.P.reconslices) %loop over slices
                 sl=MR.P.reconslices(sl_iter);
                 recondata=MR.Data(sl,:,:,:); % data of one slice to be used in recon
                 sensemapsslice=squeeze(MR.P.sensemaps(sl,:,:,:));
+                 param=init(MR.P);
                 param_sl=setReconParams(MR,recondata,sensemapsslice,param);
                 recon(sl_iter,:,:)=runCS(MR,param_sl,MR.P);
             end
+            disp('CS finished!')
+            toc
         else
+            param=init(MR.P);
             for sl_iter=1:length(MR.P.reconslices)  %loop over slices
                 sl=MR.P.reconslices(sl_iter);
                 tic;
@@ -200,5 +219,28 @@ methods
         MR.P.Recon=krr;      
         end
     end
+    
+    function preWhiten(MR)
+        if MR.P.prewhiten
+            % after sortdata --> (?) before averaging (?)
+            disp('pre-whitening data...')
+            sizeMRDATA=size(MR.Data);
+            Ncoils=size(MR.Data,4);
+            Nsamples=numel(MR.Data)/Ncoils;
+            data=reshape(MR.Data,[Nsamples,Ncoils]);
+            data=data.';
+            
+            psi = (1/(Nsamples-1))*(MR.P.eta' * MR.P.eta);
+            L = chol(psi,'lower');
+            L_inv = inv(L);
+            data_corr = L_inv * data;
+            data_corr=data_corr.';
+            MR.Data=reshape(data_corr,sizeMRDATA);
+            disp('done')
+        else
+        end
+
+    end
+    
 end
 end
