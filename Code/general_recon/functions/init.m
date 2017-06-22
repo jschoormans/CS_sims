@@ -35,15 +35,19 @@ param.Itnlim = P.Itnlim;
 param.Debug=0;
 
 
-if P.noNSAcorr
-    param.V=ones(size(P.MNSA,1),size(P.MNSA,2),P.nc);
-    param.xfmWeight = P.xfmWeight;  % L1 wavelet penalty
-else
+if P.WeightedL2
     param.V=(P.MNSA.*P.mask);
+    param.V=repmat((P.MNSA.*P.mask),[1 1 P.nc]);
+else
+    param.V=ones(size(P.MNSA,1),size(P.MNSA,2),P.nc);
+end
+
+if P.VNSAlambdaCorrection % to compare different experiments
     param.xfmWeight=P.xfmWeight*(mean(param.V(P.mask~=0)));
     param.TVWeight =param.TVWeight*(mean(param.V(P.mask~=0)));     % TV penalty
     param.TV2Weight=param.TV2Weight*(mean(param.V(P.mask~=0)));
-    param.V=repmat((P.MNSA.*P.mask),[1 1 P.nc]);
+else
+    param.xfmWeight = P.xfmWeight;  % L1 wavelet penalty
 end
 param.Beta='PR_restart';
 param.display=P.visualize_nlcg;

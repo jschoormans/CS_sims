@@ -16,7 +16,8 @@ methods
         MR.P.fixsliceintensities=false; 
         MR.P.visualize_nlcg=0;
         MR.P.parallel=false;
-        MR.P.noNSAcorr=0;
+        MR.P.VNSAlambdaCorrection=0;
+        MR.P.WeightedL2=1;
         MR.P.TVWeight=1e-5;
         MR.P.xfmWeight=2e-5;
         MR.P.Itnlim=25;
@@ -70,23 +71,25 @@ methods
         
     end
     function ReconCS(MR)
-        recon=zeros(size(MR.Data,2),size(MR.Data,3),length(MR.P.reconslices)); %pre-allocate
+        recon=zeros(length(MR.P.reconslices),size(MR.Data,2),size(MR.Data,3)); %pre-allocate
         param=init(MR.P);
         
         if MR.P.parallel==true
-            parfor sl=MR.P.reconslices %loop over slices
+            parfor sl_iter=1:length(MR.P.reconslices) %loop over slices
+                sl=MR.P.reconslices(sl_iter);
                 recondata=MR.Data(sl,:,:,:); % data of one slice to be used in recon
                 sensemapsslice=squeeze(MR.P.sensemaps(sl,:,:,:));
                 param_sl=setReconParams(MR,recondata,sensemapsslice,param);
-                recon(:,:,sl)=runCS(MR,param_sl,MR.P);
+                recon(sl_iter,:,:)=runCS(MR,param_sl,MR.P);
             end
         else
-            for sl=MR.P.reconslices %loop over slices
+            for sl_iter=1:length(MR.P.reconslices)  %loop over slices
+                sl=MR.P.reconslices(sl_iter);
                 tic;
                 recondata=MR.Data(sl,:,:,:); % data of one slice to be used in recon
                 sensemapsslice=squeeze(MR.P.sensemaps(sl,:,:,:));
                 param_sl=setReconParams(MR,recondata,sensemapsslice,param);
-                recon(:,:,sl)=runCS(MR,param_sl,MR.P);
+                recon(sl_iter,:,:)=runCS(MR,param_sl,MR.P);
                 time_iter=toc;
                 fprintf('slice: %u of %u | delta t: %f2 \n',sl,length(MR.P.reconslices),time_iter)
             end
