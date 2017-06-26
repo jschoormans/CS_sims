@@ -1,3 +1,13 @@
+
+clear all; close all
+varsVNSA
+if ispc()
+    folder=('L:\basic\divi\Ima\parrec\Jasper\VNSA\ICVW_RFSPOILED_20_6\2017_06_20\20_8041\' )
+else
+   folder='/home/jschoormans/lood_storage/divi/Ima/parrec/Jasper/VNSA/ICVW_RFSPOILED_20_6/2017_06_20/20_8041/'  
+end
+files=dir([folder,'/*.raw'])
+
 iter=5
 MRC=Recon_varNSA_CS(strcat(folder,files(iter).name));
 %% prepare both MR onbjects

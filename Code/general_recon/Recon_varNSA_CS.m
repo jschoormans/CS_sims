@@ -27,8 +27,9 @@ methods
         MR.P.prewhiten=true; 
         MR.Parameter.Recon.ImmediateAveraging='No' 
         MR.Parameter.Recon.ArrayCompression='No'; %MUST BE NO, for prewhitening 
-        MR.P.cc_number=4;
+        MR.P.cc_number=8;
         MR.P.cc=true;
+        MR.P.cctype='E' %E,S,A,G (to test!)
 
     end
     % Overload (overwrite) the existing Perform function of MRecon
@@ -64,7 +65,7 @@ methods
         MR.Data=bsxfun(@times,checkerboard,MR.Data);    %undo checkerboard    
         
         if MR.P.cc        % coil compression 
-        MR.Data=bart(['cc -S -p ',num2str(MR.P.cc_number)],MR.Data);
+        MR.Data=bart(['cc -',MR.P.cctype,'  -p ',num2str(MR.P.cc_number)],MR.Data);
         end
         
         MR.P.sensemaps=estsensemaps(MR);        % calculate sense maps
