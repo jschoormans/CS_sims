@@ -75,18 +75,20 @@ while(1)
 	
 	if lsiter<1
 		t0 = t0 / beta;
-	end
-
-	x = (x + t*dx);
-
-	%--------- uncomment for debug purposes ------------------------	
-    if params.display==1
+    end
+    
+    x = (x + t*dx);
+    
+    %--------- uncomment for debug purposes ------------------------
+    if params.Debug==1
         disp(sprintf('%d   , obj: %f, RMS: %f, L-S: %d, ErrObj: %f', k,f1,RMSerr,lsiter,ERRobj));
-        figure(100);  
+    end
+    if params.display==1
+        figure(100);
         subplot(121)
         sf1(k+1)=abs(f1);
         sf2(k+1)=abs(ERRobj);
-        hold on 
+        hold on
         plot([0:k],sf1,'k-');
         plot([0:k],sf2,'g-');
         hold off

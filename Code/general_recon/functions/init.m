@@ -32,7 +32,6 @@ param.TV2=TV2op;
 param.TV2Weight=P.TGVfactor*param.TVWeight;
 
 param.Itnlim = P.Itnlim;
-param.Debug=0;
 
 
 if P.WeightedL2
@@ -51,5 +50,7 @@ else
 end
 param.Beta='PR_restart';
 param.display=P.visualize_nlcg;
+param.Debug=P.debug_nlcg;
+
 
 

@@ -14,7 +14,10 @@ methods
         MR.P.resize=true;
         MR.P.resize_size=3;
         MR.P.fixsliceintensities=false; 
+
         MR.P.visualize_nlcg=0;
+        MR.P.debug_nlcg=0;
+
         MR.P.parallel=false;
         MR.P.VNSAlambdaCorrection=0;
         MR.P.WeightedL2=1;
@@ -30,6 +33,7 @@ methods
         MR.P.cc_number=8;
         MR.P.cc=true;
         MR.P.cctype='E' %E,S,A,G (to test!)
+
 
     end
     % Overload (overwrite) the existing Perform function of MRecon
