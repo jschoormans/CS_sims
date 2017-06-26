@@ -14,7 +14,7 @@ MR=Recon_varNSA_CS(strcat(folder,files(filenumber).name));
 MR.Perform1;
 
 % figure
-TVWeight=1e-5;%15e-5
+TVWeight=0;%15e-5
 xfmWeight=0;%01e-4;
 MR.P.TVWeight=TVWeight
 MR.P.TGVfactor=0;
@@ -33,10 +33,9 @@ R00=MR.P.Recon;
  
 %% DO SCALING AS WELL 
 
-
-ksptemp=ifft(ifft((MR.Data),[],2),[],3); %dont really care about ffshift for this 
-tmp = dimnorm(ksptemp, 4);
-tmpnorm2 = sort(tmp(:), 'ascend');
+tmp = dimnorm(ifft2c(bsxfun(@times, ksp, masks)), 3);
+tmpnorm = dimnorm(tmp, 4);
+tmpnorm2 = sort(tmpnorm(:), 'ascend');
 % match convention used in BART
 p100 = tmpnorm2(end);
 p90 = tmpnorm2(round(.9 * length(tmpnorm2)));
@@ -48,15 +47,17 @@ else
 end
 fprintf('\nScaling: %f\n\n', scaling);
 
-ksp = MR.Data ./ scaling;
-smaps=(MR.P.sensemaps);
+ksp = ksp ./ scaling;
+ksp_adj = A_adj(ksp);
+
 
 MRC=MR.Copy;
+
 % sensemapsorig=MR.P.sensemaps;
-MRC.Data=ksp;
-sensmag=reshape(vecnorm(reshape(smaps,[],8).'),[300 300 91]);
-smaps=bsxfun(@rdivide,smaps,sensmag);
-MRC.P.sensemaps=smaps;
+smaps=(MR.P.sensemaps);
+sensmag=vecnorm(reshape(smaps,[],8));
+smaps=bsxfun(@rdivide,smaps,permute(sensmag,[3 4 1 2]));
+MRC.P.sensemaps=smaps.
 MRC.ReconCS;
 R00C=MRC.P.Recon;
 
@@ -64,7 +65,7 @@ R00C=MRC.P.Recon;
 %RBart=bart('pics -S -d5 -i20 ',MR.Data(150,:,:,:),conj(sensemapsorig));
 close all
 figure(1);
-imshow(abs(cat(2,squeeze(R00)./max(R00(:)),squeeze(R00C)./max(R00C(:)))),[])
+imshow(abs(cat(2,squeeze(R00),3*squeeze(R00C))),[])
 %,squeeze(abs(RBart./max(RBart(:)))))),[])
 
   
