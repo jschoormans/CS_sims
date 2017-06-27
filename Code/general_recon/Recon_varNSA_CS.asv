@@ -37,7 +37,7 @@ methods
         MR.P.cctype='E'; %E,S,A,G (to test!)
         MR.P.Scaling=true;
     
-        MR.P.VNorm=1; %power of weighting matrix (number of NSA)^p; 
+
     end
     % Overload (overwrite) the existing Perform function of MRecon
         function Perform( MR )
@@ -103,7 +103,7 @@ methods
                 sl=MR.P.reconslices(sl_iter);
                 recondata=MR.Data(sl,:,:,:); % data of one slice to be used in recon
                 sensemapsslice=squeeze(MR.P.sensemaps(sl,:,:,:));
-                param=init(MR.P);
+                 param=init(MR.P);
                 param_sl=setReconParams(MR,recondata,sensemapsslice,param);
                 recon(sl_iter,:,:)=runCS(MR,param_sl,MR.P);
             end

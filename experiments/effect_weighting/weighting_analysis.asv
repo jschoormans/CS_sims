@@ -14,13 +14,13 @@ MR=Recon_varNSA_CS(strcat(folder,files(filenumber).name));
 MR.Perform1;
 
 %% figure
-TVWeight=0
-xfmWeight=.015;%2*TVWeight; %0.015 seems good?
+TVWeight=0.01
+xfmWeight=0;%2*TVWeight;
 MR.P.TVWeight=TVWeight
 MR.P.xfmWeight=xfmWeight
 MR.P.debug_nlcg=true;
 MR.P.visualize_nlcg=false
-MR.P.Itnlim=15
+
 slices=[20,150]
 for nslices=1:2
     
@@ -40,7 +40,7 @@ MR.P.VNSAlambdaCorrection=0;
 MR.ReconCS
 R00{nslices}=MR.P.Recon;
 
-Nfactor=7;
+Nfactor=10;
 MR.P.TVWeight=TVWeight*Nfactor;
 MR.P.xfmWeight=xfmWeight*Nfactor;
 MR.P.WeightedL2=0;
@@ -53,7 +53,6 @@ end
 % % PART 2: no lambda
 MR.P.TVWeight=0
 MR.P.xfmWeight=0
-MR.P.Itnlim=7
 
 slices=[20,180]
 for nslices=1:2
@@ -109,7 +108,7 @@ hold off
 title('PSD'); 
 xlabel('spatial frequency [mm^{-1}]')
 ylabel('log(PSD)')
-legend('no W ,\lambda_0','W, \lambda_0','W, \lambda_c','no W, \lambda_N')
+legend('no W ,\lambda_0','W, \lambda_0','W, \lambda_c','W, \lambda_N')
 export_fig '4.eps' -eps
 
 %{
@@ -136,8 +135,8 @@ export_fig '11.eps' -eps
 export_fig '11.tiff' -eps
 
 figure(14); hold on;
-plot(freqs,log(sum(abs(PSD00_noL),2)),'k');
-plot(freqs,log(sum(abs(PSD11_noL),2)),'c')
+plot(log(sum(abs(PSD00_noL),2)),'k');
+plot(log(sum(abs(PSD11_noL),2)),'c')
 hold off
 title('PSD'); 
 xlabel('spatial frequency [mm^{-1}]')

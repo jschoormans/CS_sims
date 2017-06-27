@@ -15,7 +15,7 @@ MR.Perform1;
 
 %% figure
 TVWeight=0
-xfmWeight=.015;%2*TVWeight; %0.015 seems good?
+xfmWeight=.0025;%2*TVWeight;
 MR.P.TVWeight=TVWeight
 MR.P.xfmWeight=xfmWeight
 MR.P.debug_nlcg=true;
@@ -40,7 +40,7 @@ MR.P.VNSAlambdaCorrection=0;
 MR.ReconCS
 R00{nslices}=MR.P.Recon;
 
-Nfactor=7;
+Nfactor=10;
 MR.P.TVWeight=TVWeight*Nfactor;
 MR.P.xfmWeight=xfmWeight*Nfactor;
 MR.P.WeightedL2=0;
@@ -136,8 +136,8 @@ export_fig '11.eps' -eps
 export_fig '11.tiff' -eps
 
 figure(14); hold on;
-plot(freqs,log(sum(abs(PSD00_noL),2)),'k');
-plot(freqs,log(sum(abs(PSD11_noL),2)),'c')
+plot(log(sum(abs(PSD00_noL),2)),'k');
+plot(log(sum(abs(PSD11_noL),2)),'c')
 hold off
 title('PSD'); 
 xlabel('spatial frequency [mm^{-1}]')

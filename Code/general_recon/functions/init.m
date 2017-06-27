@@ -36,7 +36,7 @@ param.Itnlim = P.Itnlim;
 
 if P.WeightedL2
     param.V=(P.MNSA.*P.mask);
-    param.V=repmat((P.MNSA.*P.mask),[1 1 P.nc]);
+    param.V=repmat((P.MNSA.*P.mask).^(P.VNorm),[1 1 P.nc]);
 else
     param.V=ones(size(P.MNSA,1),size(P.MNSA,2),P.nc);
 end
