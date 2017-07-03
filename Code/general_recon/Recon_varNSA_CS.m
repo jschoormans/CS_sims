@@ -19,7 +19,7 @@ methods
         MR.P.debug_nlcg=0;
 
         MR.P.parallel=false;
-        MR.P.VNSAlambdaCorrection=0;
+        MR.P.VNSAlambdaCorrection=1;
         MR.P.WeightedL2=1;
         MR.P.TVWeight=1e-5;
         MR.P.xfmWeight=2e-5;
@@ -182,6 +182,8 @@ methods
     end
     
     function param=setReconParams(MR,recondata,sensemaps,param)
+%         param = init(MR.P)
+        
         param.data=squeeze(recondata);
         N=size(MR.P.mask);
         % low res phase estimate        
@@ -265,8 +267,10 @@ methods
         fprintf('\n Scaling KSP...')
         if MR.P.Scaling
             tic % maybe takes too long with the loop.
-            ksptemp=permute(MR.Data,[2 3 4 1]);
+            ksptemp1=permute(MR.Data,[2 3 4 1]);
+            ksptemp=reshape(MR.Data,size(ksptemp1,1),size(ksptemp1,2),[]);
             ksptemp=ifft2c(ksptemp); %dont really care about ffshift for this
+            ksptemp=reshape(ksptemp,size(ksptemp1));
             ksptemp=permute(ksptemp,[4 1 2 3]);
             toc 
             tmp = dimnorm(ksptemp, 4);

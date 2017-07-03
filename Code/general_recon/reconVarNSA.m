@@ -3,91 +3,15 @@ function P=reconVarNSA(K,P)
 %   RECONSTRUCTION OF VARIABLE NSA CS MEASUREMENTS
 %   INPUT: K a k-space matrix [nx ny nz nc nNSA]
 
-
-
-%GET K_SPACE
-%{
-MR=MRecon
-MR.Parameter.Parameter2Read.typ = 1;
-MR.Parameter.Recon.CoilCombination='yes' 
-MR.Parameter.Recon.ACNrVirtualChannels=5;
-% Produce k-space Data (using existing MRecon functions)
-MR.ReadData;
-MR.DcOffsetCorrection;
-MR.PDACorrection;
-MR.RandomPhaseCorrection;
-MR.MeasPhaseCorrection;
-MR.SortData;
-MR.GridData;
-MR.RingingFilter;
-MR.ZeroFill;
-K=MR.Data;
-%}
-
-%DEFINE INPUT
-%{
-P=struct;
-P.outeriter=6;
-P.Itnlim=8;
-P.noNSAcorr=false;
-P.TVWeight=(6e-4);
-P.TGVfactor=0;
-P.xfmWeight=0;
-P.reconslices=250;
-P.squareksp=true;
-
-%}
-% mkdir([P.resultsfolder,P.filename])
-
 P=setParams(K,P);
-K=FFTmeas(K,P);
+% K=FFTmeas(K,P);
 [data,P.mask,P.MNSA,P.pdf]=makemask(K,P);
-
-if P.sensemapsprovided==0;
-    if P.sensemapsloop==1
-        ;
-        if P.parfor==1
-            parfor sl=P.reconslices
-                recondata=data(sl,:,:,:); % data of one slice to be used in recon
-                sensemaps(sl,:,:,:)=squeeze(estsensemaps(recondata,P));
-            end
-            P.sensemaps=sensemaps
-        else
-            for  sl=P.reconslices
-                recondata=data(sl,:,:,:); % data of one slice to be used in recon
-                P.sensemaps(sl,:,:,:)=squeeze(estsensemaps(recondata,P));
-            end
-        end
-    else
-        P.sensemapsloop=0;
-        P.sensemaps=(estsensemaps(data,P));
-    end
-else
-    if P.squareksp==true %resize sensemaps
-        sensemaps= bart('fft 7',P.sensemaps);
-        sensemaps= squareksp(sensemaps);
-        sensemaps = bart('fft -i 7',sensemaps);
-        P.sensemaps= fftshift(sensemaps,3);
-    end
-    
-end
-% P.sensemaps=ones(size(P.sensemaps)); disp('transforming sense maps into ones')
-
-if P.parfor==0
 for sl=P.reconslices %loop over slices
 recondata=data(sl,:,:,:); % data of one slice to be used in recon 
-param=setReconParams(recondata,P.MNSA,P.mask,P.pdf,P.sensemaps(sl,:,:,:),P);
-% if P.break==true; break; end
+param=setReconParams(recondata,P.MNSA,P.mask,P.pdf,P.sensemaps(:,:,:),P);
 recon(:,:,sl)=runCS(param,P);
 end
-else
-parfor sl=P.reconslices %loop over slices
-recondata=data(sl,:,:,:); % data of one slice to be used in recon 
-param=setReconParams(recondata,P.MNSA,P.mask,P.pdf,P.sensemaps(sl,:,:,:),P);
-% if P.break==true; break; end
-recon(:,:,sl)=runCS(param,P);
-end   
-end
+
 P.recon=recon;
 % saverecon(recon,P)
 
@@ -127,8 +51,7 @@ if ~isfield(P,'sensemapsloop')
     P.sensemapsloop=0
 end
 
-if and((P.squareksp==false),(P.xfmWeight>0));
-    error('wavelet enabled -- use squareksp!');end
+
 end
 
 
@@ -220,18 +143,22 @@ end
 function param=setReconParams(recondata,MNSA,mask,pdf,sensemaps,P)
 tic; disp('setting l1-recon parameters');
 N=size(mask); 
-param = init;
+param = init(P);
 
 sensemaps=squeeze(sensemaps); 
 param.data=squeeze(recondata);
 
-%generate transform operator
-XFM = Wavelet('Daubechies',4,4);	% Wavelet
-% XFM=IOP
+N=size(P.mask);
+if P.xfmWeight>0
+    %           XFM=Wavelet_SQKSP(size(mask),[1,2]);
+    XFM=Wav_SPOT(N);   %15 times faster....
+else
+    XFM=IOP; %Identity
+end
+
 
 FT1 = MCp2DFT(mask, N,squeeze(conj(sensemaps)), 1, 2);
 angle_estimate=FT1'*param.data;
-imshow(angle_estimate,[])
 
 ph = angle(angle_estimate);
 ph=exp(i*ph);
@@ -264,7 +191,8 @@ end
 param.FT = FT;
 param.Beta='PR_restart';
 param.display=1;
-
+param.display=P.visualize_nlcg;
+param.Debug=P.debug_nlcg;
 toc;
 end
 

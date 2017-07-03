@@ -83,7 +83,13 @@ while(1)
     if params.Debug==1
         disp(sprintf('%d   , obj: %f, RMS: %f, L-S: %d, ErrObj: %f', k,f1,RMSerr,lsiter,ERRobj));
     end
+    
+    
     if params.display==1
+        figure(77); hold on;
+        plot(ERRobj,f1-ERRobj,'*'); drawnow
+
+        
         figure(100);
         subplot(121)
         sf1(k+1)=abs(f1);

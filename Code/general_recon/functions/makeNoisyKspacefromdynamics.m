@@ -6,8 +6,7 @@ function [K_N, Ku_Nvar1,P]=makeNoisyKspacefromdynamics(K,P)
 if ndims(K)==3 %2d-dyns
     K=squeeze(K);
     %make masks
-    rng('default');
-    rng(1)
+
     
     [pdf,~] = genPDF(size(K(:,:,1)),4,1/P.acc,2,0,0);
     Mfull=genEllipse(size(K,1),size(K,2));
@@ -39,8 +38,8 @@ elseif ndims(K)==4 % [kx,lky,coils,dims]
     
     K=squeeze(K);
     %make masks
-    rng('default');
-    rng(1)
+%     rng('default');
+%     rng(1)
     
     pvalue=4
     

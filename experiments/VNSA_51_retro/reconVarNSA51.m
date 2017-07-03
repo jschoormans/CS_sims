@@ -1,4 +1,4 @@
-function P=reconVarNSA(K,P)
+function P=reconVarNSA51(K,P)
 %   JASPER SCHOORMANS 25-10-2016
 %   RECONSTRUCTION OF VARIABLE NSA CS MEASUREMENTS
 %   INPUT: K a k-space matrix [nx ny nz nc nNSA]
@@ -74,7 +74,7 @@ end
 if P.parfor==0
 for sl=P.reconslices %loop over slices
 recondata=data(sl,:,:,:); % data of one slice to be used in recon 
-param=setReconParams(recondata,P.MNSA,P.mask,P.pdf,P.sensemaps(sl,:,:,:),P);
+param=setReconParams(recondata,P.MNSA,P.mask,P.pdf,P.sensemaps,P);
 % if P.break==true; break; end
 recon(:,:,sl)=runCS(param,P);
 end
@@ -128,7 +128,6 @@ end
 if and((P.squareksp==false),(P.xfmWeight>0));
     error('wavelet enabled -- use squareksp!');end
 end
-
 
 function K=FFTmeas(K,P)
 % FFT IN MEASUREMENT DIRECTIONS+normalization
@@ -203,15 +202,17 @@ end
 function param=setReconParams(recondata,MNSA,mask,pdf,sensemaps,P)
 tic; disp('setting l1-recon parameters');
 N=size(mask); 
-param = init;
+param = init51;
 
 sensemaps=squeeze(sensemaps); 
 param.data=squeeze(recondata);
 
 
-
 %generate transform operator
-XFM = Wavelet('Daubechies',4,4);	% Wavelet
+N=size(P.mask);
+% XFM = Wavelet('Daubechies',4,4);	% Wavelet
+XFM=Wav_SPOT(N);   %15 times faster....
+
 % XFM=IOP
 
 FT1 = MCp2DFT(mask, N,squeeze(conj(sensemaps)), 1, 2);
