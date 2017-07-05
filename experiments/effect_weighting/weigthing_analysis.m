@@ -8,20 +8,20 @@ else
     cd('L:\basic\divi\Projects\cosart\CS_simulations\experiments\effect_weighting') % to change 
 end
 files=dir([folder,'/*.raw'])
-filenumber=5;
+filenumber=9;
 %%
 MR=Recon_varNSA_CS(strcat(folder,files(filenumber).name));
 MR.Perform1;
 
 %% figure
-TVWeight=0
-xfmWeight=.015;%2*TVWeight; %0.015 seems good?
+TVWeight=0%.000065
+xfmWeight=.00007;%2*TVWeight; %0.015 seems good?
 MR.P.TVWeight=TVWeight
 MR.P.xfmWeight=xfmWeight
 MR.P.debug_nlcg=true;
 MR.P.visualize_nlcg=false
-MR.P.Itnlim=15
-slices=[20,150]
+MR.P.Itnlim=11
+slices=[20,180]
 for nslices=1:2
     
 MR.P.reconslices=[slices(nslices)];
@@ -48,6 +48,8 @@ MR.P.VNSAlambdaCorrection=0;
 
 MR.ReconCS
 RN{nslices}=MR.P.Recon;
+MR.P.Itnlim=7 % for iter 2
+
 end
 
 % % PART 2: no lambda
@@ -92,10 +94,18 @@ freqs=linspace(-1,1,599)./resolution; % spatial frequencies'
 
 close all
 figure(1);
-imshow(abs(cat(2,squeeze(R00{2})./max(R00{2}(:)),squeeze(R10{2})./max(R10{2}(:)),squeeze(R11{2})./max(R11{2}(:)),squeeze(RN{2})./max(RN{2}(:)))),[])
+imshow(abs(cat(1,squeeze(R00{2}).'./max(R00{2}(:)),squeeze(R10{2}).'./max(R10{2}(:)),squeeze(R11{2}).'./max(R11{2}(:)),squeeze(RN{2}).'./max(RN{2}(:)))),[])
 % title('no W ,\lambda_0  |   W, \lambda_0  |  W, \lambda_c  |  no W,\lambda_N,')
 export_fig '1.eps' -eps
 export_fig '1.tiff' -eps
+
+kx=140:190; 
+ky=40:70;
+figure(2)
+imshow(abs(cat(1,squeeze(R00{2}(1,kx,ky)).'./max(R00{2}(:)),squeeze(R10{2}(1,kx,ky)).'./max(R10{2}(:)),squeeze(R11{2}(1,kx,ky)).'./max(R11{2}(:)),squeeze(RN{2}(1,kx,ky)).'./max(RN{2}(:)))),[])
+export_fig '2.eps' -eps
+export_fig '2.tiff' -eps
+
 
 figure(3); imshow(squeeze(R00{1}(1,:,1:nn)),[]); title('image section used for calculating noise spectral density')
 export_fig '3.eps' -eps
@@ -116,24 +126,28 @@ export_fig '4.eps' -eps
 x10=100*((sum(abs(PSD00),2))-(sum(abs(PSD10),2)))./(sum(abs(PSD00),2));
 x11=100*((sum(abs(PSD00),2))-(sum(abs(PSD11),2)))./(sum(abs(PSD00),2));
 xN=100*((sum(abs(PSD00),2))-(sum(abs(PSDN),2)))./(sum(abs(PSD00),2));
-
 figure(5); 
 hold on 
 plot(freqs,(x10),'g','LineWidth',1.5)
 plot(freqs,(x11),'r','LineWidth',1.5)
 plot(freqs,(xN),'k','LineWidth',1.5)
-
 xlabel('spatial frequency [mm^{-1}]')
 ylabel('difference (%)')
 title('ratio of  Weightedl2 norm and normal l2 norm')
 legend('same \lambda','adapted \lambda','extra \lambda')
 export_fig '5.eps' -eps
 %}
-
+%
 figure(11);
-imshow(abs(cat(2,squeeze(R00_noL{2}),squeeze(R11_noL{2}))),[])
+imshow(abs(cat(1,squeeze(R00_noL{2}).',squeeze(R11_noL{2}).')),[])
 export_fig '11.eps' -eps
 export_fig '11.tiff' -eps
+
+figure(12);
+imshow(abs(cat(1,squeeze(R00_noL{2}(1,kx,ky)).',squeeze(R11_noL{2}(1,kx,ky)).')),[])
+export_fig '12.eps' -eps
+export_fig '12.tiff' -eps
+
 
 figure(14); hold on;
 plot(freqs,log(sum(abs(PSD00_noL),2)),'k');
@@ -155,14 +169,10 @@ ylabel('difference (%)')
 title('ratio of  Weightedl2 norm and normal l2 norm')
 legend('same \lambda','adapted \lambda','extra \lambda')
 export_fig '15.eps' -eps
-
 %}
 
 figure(16) % mask 
 imshow(abs(MR.P.MNSA),[])
 export_fig '16.eps' -eps
 export_fig '16.tiff' -tiff
-
-
-
 

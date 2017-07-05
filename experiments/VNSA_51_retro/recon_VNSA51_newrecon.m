@@ -55,14 +55,14 @@ figure(1); imshow(squeeze(abs(ImRef)),[])
 %% RECON HERE
 %K should be [kx ky kz ncoils nNSA]
 % FOR CERTAIN ACC FACTORS - LOOP OVERNIGHT
-
+xfmWeight=2e-4;
 PR=struct;
 PR.outeriter=1;
-PR.Itnlim=10;
+PR.Itnlim=20;
 PR.noNSAcorr=false;
-PR.TVWeight=5e-3;
+PR.TVWeight=0;
 PR.TGVfactor=0;
-PR.xfmWeight=2e-3;
+PR.xfmWeight=xfmWeight;
 PR.reconslices=1;
 PR.squareksp=false;
 PR.resultsfolder=''
@@ -84,32 +84,36 @@ Nave=3;
 % SSSIM(ii,jj,kk,nave)=zeros(Nacc,3,NNSA,Nave);
 rng('default');
 rng(1)
-    
-    for kk=NNSA%:nNSA
-        for jj=1:3  %:3
-            for ii=1:Nacc  %:length(accvector);
+
+for kk=NNSA%:nNSA
+    for jj=1:3  %:3
+        for ii=1:Nacc  %:length(accvector);
+            
+            P.usedyns=kk; %for example
+            P.acc=ii;
+            P.jjj=jj+4 % 5 6 7
+            P.noiselevel=0
+            for nave=1:Nave
+                [~,~, KD]=makeNoisyKspacefromdynamics(K_ch_crop,P);
                 
-                P.usedyns=kk; %for example
-                P.acc=ii;
-                P.jjj=jj+4 % 5 6 7
-                P.noiselevel=0
-                for nave=1:Nave
-                    [~,~, KD]=makeNoisyKspacefromdynamics(K_ch_crop,P);
-                    
-                    Ko=KD.Ku_N2;
-                    Ko=permute(Ko,[5 1 2 3 4]);
-                    R=reconVarNSA(Ko,PR);
-                    Recon(ii,jj,kk,nave,:,:)=abs(R.recon); 
-                    SSSIM(ii,jj,kk,nave)=ssim(ImRef,abs(R.recon))
+                Ko=KD.Ku_N2;
+                Ko=permute(Ko,[5 1 2 3 4]);
+                parfor rr=[1:6] %regularizaiton multiplication factors...
+                    R=reconVarNSA(Ko,PR,rr);
+                    Recon(ii,jj,kk,nave,rr,:,:)=abs(R.recon);
+%                     SSSIM(ii,jj,kk,nave,rr)=ssim(ImRef,abs(R.recon)) %
+%                     can be done afterwards
                 end
             end
         end
     end
+end
 %%
 % figure(5);subplot(221);plot(mean(SSSIM(:,:,6,:),4));  title('NSA =1'); legend('equal','periphery','center')
 kk=6
 figure(5);
-errorbar(mean(SSSIM(:,:,kk,:),4),10*var(SSSIM(:,:,kk,:),[],4));
+% errorbar(mean(SSSIM(:,:,kk,:),4),10*var(SSSIM(:,:,kk,:),[],4));
+plot(max(SSSIM(:,:,kk,:),[],4))
 title('NSA =1'); legend('equal','periphery','center')
 
 %%
@@ -118,11 +122,31 @@ figure(6);
 for jj=1:3
     QQ=[]
     for ii=1:Nacc
-        
         QQ=[QQ,squeeze(Recon(ii,jj,6,1,:,:))]; 
     end
     Q{jj}=QQ;
 end
 imshow(cat(1,Q{1},Q{2},Q{3}))
+
+
+%%
+regionx=100:250;
+nave=1
+for kk=NNSA%:nNSA
+        for jj=1:3  %:3
+            for ii=1:Nacc  %:length(accvector);
+                
+                MSE(ii,jj,kk)=sum(sum((squeeze(Recon(ii,jj,kk,nave,regionx,regionx))-ImRef(regionx,regionx)).^2))
+                SSIM2(ii,jj,kk)=ssim(ImRef(regionx,regionx),abs(squeeze(Recon(ii,jj,kk,nave,regionx,regionx))))
+            end
+        end
+end
+
+figure(7); plot(MSE(:,:,6));  legend('equal','periphery','center')
+figure(8); plot(SSIM2(:,:,6));legend('equal','periphery','center')
+
+
+
+
 %%
     save([experimentfolder,'\R_',num2str(ii),'_',num2str(jj),'_',num2str(kk),'.mat'],'R')

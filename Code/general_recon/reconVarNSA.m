@@ -1,14 +1,20 @@
-function P=reconVarNSA(K,P)
+function P=reconVarNSA(K,P,rr)
 %   JASPER SCHOORMANS 25-10-2016
 %   RECONSTRUCTION OF VARIABLE NSA CS MEASUREMENTS
 %   INPUT: K a k-space matrix [nx ny nz nc nNSA]
 
+disp('params...')
 P=setParams(K,P);
+P.xfmWeight=rr*P.xfmWeight;
 % K=FFTmeas(K,P);
+disp('mask...')
 [data,P.mask,P.MNSA,P.pdf]=makemask(K,P);
+disp('recon...')
 for sl=P.reconslices %loop over slices
 recondata=data(sl,:,:,:); % data of one slice to be used in recon 
+disp('set recon params...')
 param=setReconParams(recondata,P.MNSA,P.mask,P.pdf,P.sensemaps(:,:,:),P);
+disp('do recon...')
 recon(:,:,sl)=runCS(param,P);
 end
 
@@ -174,7 +180,7 @@ param.TV2Weight=P.TGVfactor*param.TVWeight;
 
 param.Itnlim = P.Itnlim;
 param.lineSearchItnlim=100;
-param.Debug=0;
+param.Debug=1;
 param.lineSearchAlpha=1e-5;
 
 if P.noNSAcorr
